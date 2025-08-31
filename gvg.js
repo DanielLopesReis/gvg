@@ -1,4 +1,4 @@
-// 🔥 Config do Firebase (substitua pelo seu projeto)
+// 🔥 Config do Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyAH86f5LoSBj63MIR7SzVDGkrLP90Zy6jY",
     authDomain: "registro-players.firebaseapp.com",
@@ -9,105 +9,96 @@ const firebaseConfig = {
     appId: "1:156344963881:web:79efd9aeade8454d8b5d38",
     measurementId: "G-7HKNWBDJYT"
 };
-
-// Inicializando Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+const auth = firebase.auth();
 
-const btnCadastrar = document.getElementById('btnCadastrar');
-const btnLimpar = document.getElementById('btnLimpar');
-const btnExportar = document.getElementById('btnExportar');
+// Email autorizado para ações de administração
+const ADMIN_EMAILS = ["daniel.consultor01@gmail.com"];
 
-const nomeInput = document.getElementById('nome');
-const nickInput = document.getElementById('nick');
-const classeInput = document.getElementById('classe');
+// Siglas permitidas
+const ALLOWED_CLASSES = ["BK", "MG", "DL", "SM", "ELF"];
 
-const tabela = document.querySelector('#tabelaPlayers tbody');
+// Registra novo jogador
+function addPlayer() {
+    const name = document.getElementById("name").value.trim();
+    const playerClass = document.getElementById("class").value.trim().toUpperCase();
+    const nick = document.getElementById("nick").value.trim();
 
-// Email autorizado
-const emailAutorizado = "daniel.consultor01@gmail.com";
+    if (!name || !playerClass || !nick) {
+        alert("Preencha todos os campos!");
+        return;
+    }
 
-// Função para atualizar a tabela em tempo real
-function atualizarTabela() {
-    tabela.innerHTML = '';
-    db.ref('players').once('value', snapshot => {
+    // Valida sigla da classe
+    if (!ALLOWED_CLASSES.includes(playerClass)) {
+        alert(`Classe inválida! Siglas permitidas: ${ALLOWED_CLASSES.join(", ")}`);
+        return;
+    }
+
+    // Evita duplicatas pelo nick
+    db.ref("players/" + nick).get().then(snapshot => {
+        if (snapshot.exists()) {
+            alert("Este nick já foi registrado!");
+        } else {
+            db.ref("players/" + nick).set({ name, playerClass, nick });
+            alert("Cadastro realizado com sucesso!");
+            loadPlayers();
+            // Limpa campos
+            document.getElementById("name").value = "";
+            document.getElementById("class").value = "";
+            document.getElementById("nick").value = "";
+        }
+    });
+}
+
+// Carrega lista em tempo real
+function loadPlayers() {
+    db.ref("players").on("value", snapshot => {
+        const listDiv = document.getElementById("playerList");
+        listDiv.innerHTML = "";
         snapshot.forEach(child => {
-            const player = child.val();
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${player.nome}</td><td>${player.classe}</td><td>${player.nick}</td>`;
-            tabela.appendChild(tr);
+            const p = document.createElement("div");
+            p.className = "playerItem";
+            p.textContent = `${child.val().name} - ${child.val().playerClass} - ${child.val().nick}`;
+            listDiv.appendChild(p);
+        });
+    });
+}
+loadPlayers();
+
+// Exportar lista para txt
+function exportList() {
+    promptLogin(() => {
+        db.ref("players").get().then(snapshot => {
+            let txt = "";
+            snapshot.forEach(child => {
+                txt += `${child.val().name} - ${child.val().playerClass} - ${child.val().nick}\n`;
+            });
+            const blob = new Blob([txt], { type: "text/plain" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "guild_vs_guild.txt"; // nome atualizado
+            a.click();
         });
     });
 }
 
-// Cadastro de player
-btnCadastrar.addEventListener('click', () => {
-    const nome = nomeInput.value.trim();
-    const nick = nickInput.value.trim().toUpperCase();
-    const classe = classeInput.value;
-
-    const classesValidas = ['BK','MG','DL','SM','ELF'];
-
-    if (!nome || !nick || !classe) {
-        alert('Preencha todos os campos.');
-        return;
-    }
-
-    if (!classesValidas.includes(classe)) {
-        alert('Classe inválida. Permitidas: BK, MG, DL, SM, ELF');
-        return;
-    }
-
-    // Verifica duplicidade pelo nick
-    db.ref('players').orderByChild('nick').equalTo(nick).once('value', snapshot => {
-        if (snapshot.exists()) {
-            alert('Este jogador já foi cadastrado!');
-        } else {
-            const novoPlayer = {nome, classe, nick};
-            db.ref('players').push(novoPlayer);
-            alert('Cadastro efetuado com sucesso!');
-            nomeInput.value = '';
-            nickInput.value = '';
-            classeInput.value = '';
-            atualizarTabela();
+// Limpar lista
+function clearList() {
+    promptLogin(() => {
+        if (confirm("Deseja realmente limpar toda a lista?")) {
+            db.ref("players").remove();
         }
     });
-});
+}
 
-// Limpar lista (somente autorizado)
-btnLimpar.addEventListener('click', () => {
-    const senha = prompt('Digite o email autorizado:');
-    if (senha === emailAutorizado) {
-        if (confirm('Deseja realmente limpar a lista?')) {
-            db.ref('players').remove();
-            atualizarTabela();
-        }
-    } else {
-        alert('Email incorreto!');
+// Função para autenticação rápida via email
+function promptLogin(callback) {
+    const email = prompt("Digite seu email autorizado:");
+    if (!ADMIN_EMAILS.includes(email)) {
+        alert("Email não autorizado!");
+        return;
     }
-});
-
-// Exportar lista (somente autorizado)
-btnExportar.addEventListener('click', () => {
-    const senha = prompt('Digite o email autorizado:');
-    if (senha === emailAutorizado) {
-        db.ref('players').once('value', snapshot => {
-            let dados = '';
-            snapshot.forEach(child => {
-                const p = child.val();
-                dados += `${p.nome} - ${p.classe} - ${p.nick}\n`;
-            });
-
-            const blob = new Blob([dados], {type: "text/plain"});
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = "guild_vs_guild.txt";
-            link.click();
-        });
-    } else {
-        alert('Email incorreto!');
-    }
-});
-
-// Atualiza tabela automaticamente ao iniciar
-atualizarTabela();
+    callback();
+}
