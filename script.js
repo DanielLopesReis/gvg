@@ -44,10 +44,6 @@ function addPlayer() {
             db.ref("players/" + nick).set({ name, playerClass, nick });
             alert("Cadastro realizado com sucesso!");
             loadPlayers();
-            // Limpa campos
-            document.getElementById("name").value = "";
-            document.getElementById("class").value = "";
-            document.getElementById("nick").value = "";
         }
     });
 }
@@ -78,7 +74,7 @@ function exportList() {
             const blob = new Blob([txt], { type: "text/plain" });
             const a = document.createElement("a");
             a.href = URL.createObjectURL(blob);
-            a.download = "guild_vs_guild.txt"; // nome atualizado
+            a.download = "gvglista.txt";
             a.click();
         });
     });
