@@ -19,6 +19,9 @@ const ADMIN_EMAILS = ["daniel.consultor01@gmail.com"];
 // Siglas permitidas
 const ALLOWED_CLASSES = ["BK", "MG", "DL", "SM", "ELF"];
 
+// Caminho exclusivo para Guild vs Guild
+const GVG_NODE = "gvgPlayers";
+
 // Registra novo jogador
 function addPlayer() {
     const name = document.getElementById("name").value.trim();
@@ -30,18 +33,17 @@ function addPlayer() {
         return;
     }
 
-    // Valida sigla da classe
     if (!ALLOWED_CLASSES.includes(playerClass)) {
         alert(`Classe inválida! Siglas permitidas: ${ALLOWED_CLASSES.join(", ")}`);
         return;
     }
 
     // Evita duplicatas pelo nick
-    db.ref("players/" + nick).get().then(snapshot => {
+    db.ref(GVG_NODE + "/" + nick).get().then(snapshot => {
         if (snapshot.exists()) {
             alert("Este nick já foi registrado!");
         } else {
-            db.ref("players/" + nick).set({ name, playerClass, nick });
+            db.ref(GVG_NODE + "/" + nick).set({ name, playerClass, nick });
             alert("Cadastro realizado com sucesso!");
             loadPlayers();
         }
@@ -50,7 +52,7 @@ function addPlayer() {
 
 // Carrega lista em tempo real
 function loadPlayers() {
-    db.ref("players").on("value", snapshot => {
+    db.ref(GVG_NODE).on("value", snapshot => {
         const listDiv = document.getElementById("playerList");
         listDiv.innerHTML = "";
         snapshot.forEach(child => {
@@ -66,7 +68,7 @@ loadPlayers();
 // Exportar lista para txt
 function exportList() {
     promptLogin(() => {
-        db.ref("players").get().then(snapshot => {
+        db.ref(GVG_NODE).get().then(snapshot => {
             let txt = "";
             snapshot.forEach(child => {
                 txt += `${child.val().name} - ${child.val().playerClass} - ${child.val().nick}\n`;
@@ -84,7 +86,7 @@ function exportList() {
 function clearList() {
     promptLogin(() => {
         if (confirm("Deseja realmente limpar toda a lista?")) {
-            db.ref("players").remove();
+            db.ref(GVG_NODE).remove();
         }
     });
 }
