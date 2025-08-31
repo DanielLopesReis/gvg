@@ -2,46 +2,76 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Guild vs Guild</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js"></script>
+    <title>ExilliuM - Guild vs Guild</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f2f2f2; padding: 20px; }
-        h1 { text-align: center; color: #333; }
-        .container { max-width: 500px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        input, select, button { width: 100%; padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #ccc; }
-        #playerList { margin-top: 20px; }
-        .playerItem { padding: 5px; border-bottom: 1px solid #ddd; }
-        .btn-group { display: flex; gap: 10px; }
-        .btn-group button { flex: 1; }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            color: red;
+            margin-bottom: 10px;
+        }
+        h2 {
+            color: #fff;
+            margin-bottom: 20px;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border-radius: 4px;
+            border: none;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: red;
+            color: black;
+            cursor: pointer;
+        }
+        #playerList {
+            margin-top: 20px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: left;
+        }
+        .playerItem {
+            background-color: #2e2e2e;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
-    <h1>Guild vs Guild</h1>
-    <div class="container">
-        <input type="text" id="name" placeholder="Nome do jogador">
-        <input type="text" id="nick" placeholder="Nick do jogador">
-        <select id="class">
-            <option value="">Selecione a classe</option>
-            <option value="BK">BK</option>
-            <option value="MG">MG</option>
-            <option value="DL">DL</option>
-            <option value="SM">SM</option>
-            <option value="ELF">ELF</option>
-        </select>
-        <button onclick="addPlayer()">Adicionar jogador</button>
 
-        <div class="btn-group">
-            <button onclick="exportList()">Exportar lista</button>
-            <button onclick="clearList()">Limpar lista</button>
-        </div>
+    <h1>ExilliuM</h1>
+    <h2>Guild vs Guild - Registro de jogadores</h2>
 
-        <div id="playerList"></div>
-    </div>
+    <input type="text" id="name" placeholder="Nome">
+    <input type="text" id="class" placeholder="Classe (BK, MG, DL, SM, ELF)">
+    <input type="text" id="nick" placeholder="Nick">
+    <br>
+    <button onclick="addPlayer()">Registrar jogador</button>
+    <button onclick="exportList()">Exportar lista</button>
+    <button onclick="clearList()">Limpar lista</button>
 
+    <div id="playerList"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <!-- Script principal -->
     <script src="script.js"></script>
+
 </body>
 </html>
