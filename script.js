@@ -19,9 +19,6 @@ const ADMIN_EMAILS = ["daniel.consultor01@gmail.com"];
 // Siglas permitidas
 const ALLOWED_CLASSES = ["BK", "MG", "DL", "SM", "ELF"];
 
-// Caminho exclusivo para Guild vs Guild
-const GVG_NODE = "gvgPlayers";
-
 // Registra novo jogador
 function addPlayer() {
     const name = document.getElementById("name").value.trim();
@@ -38,21 +35,24 @@ function addPlayer() {
         return;
     }
 
-    // Evita duplicatas pelo nick
-    db.ref(GVG_NODE + "/" + nick).get().then(snapshot => {
+    // Usando nó exclusivo do Guild vs Guild
+    db.ref("gvgPlayers/" + nick).get().then(snapshot => {
         if (snapshot.exists()) {
             alert("Este nick já foi registrado!");
         } else {
-            db.ref(GVG_NODE + "/" + nick).set({ name, playerClass, nick });
-            alert("Cadastro realizado com sucesso!");
-            loadPlayers();
+            db.ref("gvgPlayers/" + nick).set({ name, playerClass, nick })
+            .then(() => {
+                alert("Cadastro realizado com sucesso!");
+                loadPlayers();
+            })
+            .catch(err => alert("Erro ao cadastrar: " + err.message));
         }
     });
 }
 
 // Carrega lista em tempo real
 function loadPlayers() {
-    db.ref(GVG_NODE).on("value", snapshot => {
+    db.ref("gvgPlayers").on("value", snapshot => {
         const listDiv = document.getElementById("playerList");
         listDiv.innerHTML = "";
         snapshot.forEach(child => {
@@ -68,7 +68,7 @@ loadPlayers();
 // Exportar lista para txt
 function exportList() {
     promptLogin(() => {
-        db.ref(GVG_NODE).get().then(snapshot => {
+        db.ref("gvgPlayers").get().then(snapshot => {
             let txt = "";
             snapshot.forEach(child => {
                 txt += `${child.val().name} - ${child.val().playerClass} - ${child.val().nick}\n`;
@@ -86,12 +86,12 @@ function exportList() {
 function clearList() {
     promptLogin(() => {
         if (confirm("Deseja realmente limpar toda a lista?")) {
-            db.ref(GVG_NODE).remove();
+            db.ref("gvgPlayers").remove();
         }
     });
 }
 
-// Função para autenticação rápida via email
+// Função de autenticação via email
 function promptLogin(callback) {
     const email = prompt("Digite seu email autorizado:");
     if (!ADMIN_EMAILS.includes(email)) {
