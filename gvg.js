@@ -1,108 +1,103 @@
-// Configuração Firebase (mesmo do Castle Siege)
+// ================= FIREBASE =================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
 const firebaseConfig = {
   apiKey: "SUA_API_KEY",
-  authDomain: "SUA_AUTH_DOMAIN",
-  databaseURL: "SUA_DATABASE_URL",
-  projectId: "SUA_PROJECT_ID",
-  storageBucket: "SUA_STORAGE_BUCKET",
-  messagingSenderId: "SUA_MESSAGING_SENDER_ID",
-  appId: "SUA_APP_ID"
+  authDomain: "SEU_DOMINIO.firebaseapp.com",
+  databaseURL: "https://SEU_DATABASE.firebaseio.com",
+  projectId: "SEU_PROJECT_ID",
+  storageBucket: "SEU_BUCKET.appspot.com",
+  messagingSenderId: "SENDER_ID",
+  appId: "APP_ID"
 };
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const playersRef = ref(db, "gvg_players");
+
+// ================= VARIÁVEIS =================
+const form = document.getElementById("registerForm");
+const playersList = document.getElementById("playersList");
+const exportBtn = document.getElementById("exportBtn");
+const clearBtn = document.getElementById("clearBtn");
 
 // Email autorizado
 const authorizedEmail = "daniel.consultor01@gmail.com";
 
-// Lista de classes permitidas
-const allowedClasses = ["BK", "MG", "DL", "SM", "ELF"];
+// Siglas permitidas
+const validClasses = ["BK", "MG", "DL", "SM", "ELF"];
 
-// Formulário de cadastro
-document.getElementById("playerForm").addEventListener("submit", function(e) {
+// ================= FUNÇÕES =================
+
+// Valida classe
+function validateClass(sigla) {
+  return validClasses.includes(sigla.toUpperCase());
+}
+
+// Adiciona jogador
+form.addEventListener("submit", (e) => {
   e.preventDefault();
 
   const nome = document.getElementById("nome").value.trim();
   const classe = document.getElementById("classe").value.trim().toUpperCase();
   const nick = document.getElementById("nick").value.trim();
 
-  const messageDiv = document.getElementById("message");
-
-  if (!allowedClasses.includes(classe)) {
-    messageDiv.innerHTML = `<p class="error">Classe inválida! Use apenas: BK, MG, DL, SM, ELF.</p>`;
+  if (!validateClass(classe)) {
+    alert("Classe inválida! Use apenas: BK, MG, DL, SM, ELF.");
     return;
   }
 
-  const playerRef = db.ref("gvgPlayers/" + nick);
+  push(playersRef, { nome, classe, nick });
 
-  playerRef.once("value", snapshot => {
-    if (snapshot.exists()) {
-      messageDiv.innerHTML = `<p class="error">Este nick já está cadastrado!</p>`;
-    } else {
-      playerRef.set({ nome, classe, nick });
-      messageDiv.innerHTML = `<p class="success">Cadastro efetuado com sucesso!</p>`;
-      document.getElementById("playerForm").reset();
-    }
-  });
+  form.reset();
+  alert("Cadastro realizado com sucesso!");
 });
 
-// Exibir lista em tempo real
-const playerList = document.getElementById("playerList");
-
-db.ref("gvgPlayers").on("value", snapshot => {
-  playerList.innerHTML = "";
-  snapshot.forEach(childSnapshot => {
-    const player = childSnapshot.val();
+// Atualiza lista em tempo real
+onValue(playersRef, (snapshot) => {
+  playersList.innerHTML = "";
+  snapshot.forEach((child) => {
+    const data = child.val();
     const li = document.createElement("li");
-    li.textContent = `${player.nome} - ${player.classe} - ${player.nick}`;
-    playerList.appendChild(li);
+    li.textContent = `${data.nome} - ${data.classe} - ${data.nick}`;
+    playersList.appendChild(li);
   });
 });
 
-// Função de autenticação simples (email)
-function authenticate() {
-  const email = prompt("Digite o email autorizado:");
-  if (email === authorizedEmail) {
-    showAdminButtons();
-  } else {
-    alert("Email não autorizado!");
+// Exportar lista (somente autorizado)
+exportBtn.addEventListener("click", () => {
+  const email = prompt("Digite o email autorizado para exportar:");
+
+  if (email !== authorizedEmail) {
+    alert("Acesso negado!");
+    return;
   }
-}
 
-// Exibir botões de admin
-function showAdminButtons() {
-  const adminDiv = document.getElementById("adminButtons");
-
-  adminDiv.innerHTML = `
-    <button onclick="exportList()">Exportar Lista</button>
-    <button onclick="clearList()">Limpar Lista</button>
-  `;
-}
-
-// Exportar lista para TXT
-function exportList() {
-  db.ref("gvgPlayers").once("value", snapshot => {
-    let content = "";
-    snapshot.forEach(childSnapshot => {
-      const player = childSnapshot.val();
-      content += `${player.nome} - ${player.classe} - ${player.nick}\n`;
-    });
-
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "gvg_players.txt";
-    a.click();
+  let content = "";
+  playersList.querySelectorAll("li").forEach((li) => {
+    content += li.textContent + "\n";
   });
-}
 
-// Limpar lista
-function clearList() {
-  if (confirm("Tem certeza que deseja limpar toda a lista?")) {
-    db.ref("gvgPlayers").remove();
+  const blob = new Blob([content], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "gvg_players.txt";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+// Limpar lista (somente autorizado)
+clearBtn.addEventListener("click", () => {
+  const email = prompt("Digite o email autorizado para limpar a lista:");
+
+  if (email !== authorizedEmail) {
+    alert("Acesso negado!");
+    return;
   }
-}
 
-// Executa autenticação ao carregar
-window.onload = authenticate;
+  if (confirm("Tem certeza que deseja limpar a lista?")) {
+    remove(playersRef);
+  }
+});
