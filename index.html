@@ -1,30 +1,97 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ExilliuM - Guild vs Guild</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guild vs Guild - Registro de jogadores</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 {
+            color: red;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        input, select, button {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #btnExportar, #btnLimpar {
+            background-color: red;
+            color: black;
+        }
+
+        table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            width: 80%;
+        }
+
+        th, td {
+            border: 1px solid white;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #333;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1><span class="highlight">ExilliuM</span><br>Guild vs Guild - Registro de jogadores</h1>
+    <h1>ExilliuM</h1>
+    <h2>Guild vs Guild - Registro de jogadores</h2>
 
-    <form id="registerForm">
-      <input type="text" id="nome" placeholder="Nome" required>
-      <input type="text" id="classe" placeholder="Classe (BK, MG, DL, SM, ELF)" required>
-      <input type="text" id="nick" placeholder="Nick" required>
-      <button type="submit">Registrar</button>
-    </form>
+    <input type="text" id="nome" placeholder="Nome">
+    <input type="text" id="nick" placeholder="Nick">
+    <select id="classe">
+        <option value="">Selecione a Classe</option>
+        <option value="BK">BK</option>
+        <option value="MG">MG</option>
+        <option value="DL">DL</option>
+        <option value="SM">SM</option>
+        <option value="ELF">ELF</option>
+    </select>
+    <button id="btnCadastrar">Cadastrar</button>
+    <button id="btnExportar">Exportar Lista</button>
+    <button id="btnLimpar">Limpar Lista</button>
 
-    <h2>Lista de Jogadores</h2>
-    <ul id="playersList"></ul>
+    <table id="tabelaPlayers">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Classe</th>
+                <th>Nick</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 
-    <!-- Botões protegidos -->
-    <button id="exportBtn">Exportar Lista</button>
-    <button id="clearBtn">Limpar Lista</button>
-  </div>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
-  <script type="module" src="app.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
