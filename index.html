@@ -48,6 +48,11 @@
             padding: 10px;
             border-radius: 4px;
         }
+        #summary {
+            margin-top: 15px;
+            color: yellow;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -64,6 +69,90 @@
     <button onclick="clearList()">Limpar lista</button>
 
     <div id="playerList"></div>
+    <div id="summary"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <!-- Script principal -->
+    <script src="script.js"></script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExilliuM - Guild vs Guild</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            color: red;
+            margin-bottom: 10px;
+        }
+        h2 {
+            color: #fff;
+            margin-bottom: 20px;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border-radius: 4px;
+            border: none;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: red;
+            color: black;
+            cursor: pointer;
+        }
+        #playerList {
+            margin-top: 20px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: left;
+        }
+        .playerItem {
+            background-color: #2e2e2e;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        #summary {
+            margin-top: 15px;
+            color: yellow;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>ExilliuM</h1>
+    <h2>Guild vs Guild - Registro de jogadores</h2>
+
+    <input type="text" id="name" placeholder="Nome">
+    <input type="text" id="class" placeholder="Classe (BK, MG, DL, SM, ELF)">
+    <input type="text" id="nick" placeholder="Nick">
+    <br>
+    <button onclick="addPlayer()">Registrar jogador</button>
+    <button onclick="exportList()">Exportar lista</button>
+    <button onclick="clearList()">Limpar lista</button>
+
+    <div id="playerList"></div>
+    <div id="summary"></div>
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>

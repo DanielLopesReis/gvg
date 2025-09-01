@@ -51,17 +51,34 @@ function addPlayer() {
   });
 }
 
-// Carrega lista em tempo real
+// Carrega lista em tempo real e atualiza contagem
 function loadPlayers() {
   db.ref("players").on("value", snapshot => {
     const listDiv = document.getElementById("playerList");
+    const summaryDiv = document.getElementById("summary");
     listDiv.innerHTML = "";
+    const counts = {};
+    let total = 0;
+
     snapshot.forEach(child => {
+      const player = child.val();
       const p = document.createElement("div");
       p.className = "playerItem";
-      p.textContent = `${child.val().name} - ${child.val().playerClass} - ${child.val().nick}`;
+      p.textContent = `${player.name} - ${player.playerClass} - ${player.nick}`;
       listDiv.appendChild(p);
+
+      // Contagem por classe
+      counts[player.playerClass] = (counts[player.playerClass] || 0) + 1;
+      total++;
     });
+
+    // Monta resumo de contagem
+    let summaryText = "";
+    ALLOWED_CLASSES.forEach(cls => {
+      if (counts[cls]) summaryText += `${cls}: ${counts[cls]}  `;
+    });
+    summaryText += `\nTotal de jogadores: ${total}`;
+    summaryDiv.textContent = summaryText;
   });
 }
 loadPlayers();
