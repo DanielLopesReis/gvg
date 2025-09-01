@@ -51,14 +51,16 @@ function addPlayer() {
   });
 }
 
-// Carrega lista em tempo real e atualiza contagem
+// Carrega lista em tempo real
 function loadPlayers() {
   db.ref("players").on("value", snapshot => {
     const listDiv = document.getElementById("playerList");
-    const summaryDiv = document.getElementById("summary");
     listDiv.innerHTML = "";
-    const counts = {};
-    let total = 0;
+
+    // Contagem de jogadores por classe
+    const classCount = {};
+    ALLOWED_CLASSES.forEach(cls => classCount[cls] = 0);
+    let totalPlayers = 0;
 
     snapshot.forEach(child => {
       const player = child.val();
@@ -67,18 +69,23 @@ function loadPlayers() {
       p.textContent = `${player.name} - ${player.playerClass} - ${player.nick}`;
       listDiv.appendChild(p);
 
-      // Contagem por classe
-      counts[player.playerClass] = (counts[player.playerClass] || 0) + 1;
-      total++;
+      if (ALLOWED_CLASSES.includes(player.playerClass)) {
+        classCount[player.playerClass]++;
+        totalPlayers++;
+      }
     });
 
-    // Monta resumo de contagem
+    // Mostrar resumo
+    const summary = document.createElement("div");
+    summary.style.marginTop = "20px";
+    summary.style.fontWeight = "bold";
     let summaryText = "";
     ALLOWED_CLASSES.forEach(cls => {
-      if (counts[cls]) summaryText += `${cls}: ${counts[cls]}  `;
+      summaryText += `${cls}: ${classCount[cls]}  `;
     });
-    summaryText += `\nTotal de jogadores: ${total}`;
-    summaryDiv.textContent = summaryText;
+    summaryText += `\nTotal de jogadores: ${totalPlayers}`;
+    summary.textContent = summaryText;
+    listDiv.appendChild(summary);
   });
 }
 loadPlayers();
