@@ -22,6 +22,7 @@ function loginADM() {
     isADM = true;
     alert("✅ Acesso ADM liberado!");
     loadPlayers();
+    updateGroups();
   } else alert("❌ Email não autorizado!");
 }
 
@@ -105,15 +106,18 @@ function createGroup() {
     }
 
     const groupName = `PT ${Date.now()}`; // nome único por timestamp
-    db.ref("groups/" + groupName).set({ members: [] });
+    db.ref("groups/" + groupName).set({ members: [] }).then(() => {
+      alert(`✅ Grupo "${groupName}" criado!`);
+      updateGroups();
+    });
   });
 }
 
-function loadGroups() {
+function updateGroups() {
   db.ref("groups").on("value", snapshot => {
     const groupsDiv = document.getElementById("groups"); groupsDiv.innerHTML="";
     snapshot.forEach(child => {
-      const groupName = child.key, groupData=child.val();
+      const groupName = child.key, groupData = child.val();
       const box = document.createElement("div"); box.className="groupBox";
 
       const title = document.createElement("div"); title.className="groupTitle"; title.textContent=groupName;
@@ -125,20 +129,20 @@ function loadGroups() {
       }
       box.appendChild(title);
 
-      const memberCount = groupData.members ? groupData.members.length : 0;
-      for(let i=0;i<memberCount || i<5;i++){
-        const select=document.createElement("select");
-        select.innerHTML=`<option value="">-- vazio --</option>`;
+      const playerCount = groupData.members ? groupData.members.length : 0;
+      const selectCount = Math.max(5, playerCount); // sempre 5 selects visíveis, mas podem ser vazios
+      for(let i=0;i<selectCount;i++){
+        const select = document.createElement("select");
+        select.innerHTML = `<option value="">-- vazio --</option>`;
         db.ref("players").once("value").then(playersSnap=>{
           playersSnap.forEach(pSnap=>{
-            const nick=pSnap.key;
-            const opt=document.createElement("option");
-            opt.value=nick; opt.textContent=nick;
+            const nick = pSnap.key;
+            const opt = document.createElement("option"); opt.value = nick; opt.textContent = nick;
             if(groupData.members && groupData.members[i]===nick) opt.selected=true;
             select.appendChild(opt);
           });
         });
-        select.onchange=()=> {
+        select.onchange = () => {
           const members=[]; box.querySelectorAll("select").forEach(s=>{if(s.value) members.push(s.value);});
           db.ref("groups/"+groupName+"/members").set(members);
         };
@@ -149,8 +153,6 @@ function loadGroups() {
     });
   });
 }
-loadGroups();
-function updateGroups(){loadGroups();}
 
 // -------------------- Export & Limpar --------------------
 function exportList() {
