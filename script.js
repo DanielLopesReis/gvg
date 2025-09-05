@@ -21,7 +21,6 @@ function loginADM() {
     isADM = true;
     alert("✅ Acesso ADM liberado!");
     loadPlayers();
-    loadGroups(); // garante atualização imediata
   } else {
     alert("❌ Email não autorizado!");
   }
@@ -54,7 +53,7 @@ function loadPlayers() {
     summaryDiv.innerHTML = "";
 
     const classCount = {};
-    ALLOWED_CLASSES.forEach(cls => (classCount[cls] = 0));
+    ALLOWED_CLASSES.forEach(cls => classCount[cls] = 0);
     let totalPlayers = 0;
 
     snapshot.forEach(child => {
@@ -112,13 +111,25 @@ function removePlayer(nick) {
 function createGroup() {
   if (!isADM) return alert("Ação ADM necessária!");
 
-  db.ref("groups").once("value").then(snapshot => {
-    const groupName = `PT ${snapshot.numChildren() + 1}`;
-    db.ref("groups/" + groupName).set({ members: [] }).then(() => {
-      alert(`✅ Grupo ${groupName} criado!`);
-    }).catch(err => {
-      console.error("Erro ao criar grupo:", err);
-      alert("❌ Erro ao criar grupo!");
+  // ✅ Verifica se há jogadores cadastrados
+  db.ref("players").once("value").then(playersSnap => {
+    if (!playersSnap.exists()) {
+      alert("⚠ Não há jogadores na lista!");
+      return;
+    }
+
+    db.ref("groups").once("value").then(snapshot => {
+      const totalGroups = snapshot.numChildren();
+      if (totalGroups >= 10) {
+        alert("⚠ Limite de 10 grupos atingido!");
+        return;
+      }
+
+      const groupName = `PT ${totalGroups + 1}`;
+      db.ref("groups/" + groupName).set({ members: ["", "", "", "", ""] }).then(() => {
+        loadGroups();
+        alert(`✅ Grupo ${groupName} criado!`);
+      });
     });
   });
 }
@@ -128,29 +139,26 @@ function loadGroups() {
     const groupsDiv = document.getElementById("groups");
     groupsDiv.innerHTML = "";
     snapshot.forEach(child => {
-      const groupName = child.key;
-      const groupData = child.val();
+      const groupName = child.key, groupData = child.val();
       const box = document.createElement("div");
       box.className = "groupBox";
 
       const title = document.createElement("div");
       title.className = "groupTitle";
       title.textContent = groupName;
-
       if (isADM) {
         const btn = document.createElement("button");
         btn.textContent = "Encerrar Grupo";
         btn.style.backgroundColor = "#ff4d4d";
         btn.style.color = "white";
         btn.style.marginLeft = "10px";
-        btn.onclick = () => {
-          if (confirm(`Encerrar ${groupName}?`)) db.ref("groups/" + groupName).remove();
+        btn.onclick = () => { 
+          if (confirm(`Encerrar ${groupName}?`)) db.ref("groups/" + groupName).remove(); 
         };
         title.appendChild(btn);
       }
       box.appendChild(title);
 
-      // Selects para membros (até 5)
       for (let i = 0; i < 5; i++) {
         const select = document.createElement("select");
         select.innerHTML = `<option value="">-- vazio --</option>`;
@@ -166,9 +174,7 @@ function loadGroups() {
         });
         select.onchange = () => {
           const members = [];
-          box.querySelectorAll("select").forEach(s => {
-            if (s.value) members.push(s.value);
-          });
+          box.querySelectorAll("select").forEach(s => { if (s.value) members.push(s.value); });
           db.ref("groups/" + groupName + "/members").set(members);
         };
         box.appendChild(select);
@@ -178,9 +184,8 @@ function loadGroups() {
     });
   });
 }
-function updateGroups() {
-  loadGroups();
-}
+loadGroups();
+function updateGroups() { loadGroups(); }
 
 // -------------------- Export & Limpar --------------------
 function exportList() {
