@@ -1,77 +1,68 @@
 // Firebase Config
 const firebaseConfig = {
-    apiKey: "SUA_API_KEY",
-    authDomain: "SEU_AUTH_DOMAIN",
-    databaseURL: "SUA_DATABASE_URL",
-    projectId: "SEU_PROJECT_ID",
-    storageBucket: "SEU_STORAGE_BUCKET",
-    messagingSenderId: "SEU_SENDER_ID",
-    appId: "SEU_APP_ID"
+  apiKey: "AIzaSyAH86f5LoSBj63MIR7SzVDGkrLP90Zy6jY",
+  authDomain: "registro-players.firebaseapp.com",
+  databaseURL: "https://registro-players-default-rtdb.firebaseio.com",
+  projectId: "registro-players",
+  storageBucket: "registro-players.firebasestorage.app",
+  messagingSenderId: "156344963881",
+  appId: "1:156344963881:web:79efd9aeade8454d8b5d38",
+  measurementId: "G-7HKNWBDJYT"
 };
+
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // Estado global
 let players = [];
+let groups = {};
 let isADM = false;
-let groupCount = 0;
 
-// Carregar jogadores do Firebase ao iniciar
+// Carregar jogadores do Firebase
 db.ref('players').on('value', snapshot => {
     players = [];
-    snapshot.forEach(child => {
-        players.push(child.val());
-    });
+    snapshot.forEach(child => players.push(child.val()));
     renderPlayers();
 });
 
-// Função de registro de jogador (qualquer usuário)
+// Carregar grupos do Firebase
+db.ref('groups').on('value', snapshot => {
+    groups = {};
+    snapshot.forEach(child => groups[child.key] = child.val());
+    renderGroups();
+});
+
+// Registro de jogador (qualquer usuário)
 function addPlayer() {
     const name = document.getElementById('name').value.trim();
     const cls = document.getElementById('class').value.trim();
     const nick = document.getElementById('nick').value.trim();
-
-    if (!name || !cls || !nick) {
-        alert("Preencha todos os campos!");
-        return;
-    }
-
-    const player = { name, cls, nick };
-    const playerKey = nick; // usamos o nick como key para evitar duplicados
-
-    db.ref('players/' + playerKey).set(player, error => {
-        if (error) alert("Erro ao registrar jogador!");
-        else {
-            document.getElementById('name').value = '';
-            document.getElementById('class').value = '';
-            document.getElementById('nick').value = '';
-        }
+    if (!name || !cls || !nick) return alert("Preencha todos os campos!");
+    db.ref('players/' + nick).set({ name, cls, nick }, err => {
+        if (err) alert("Erro ao registrar jogador!");
+        else document.getElementById('name').value = document.getElementById('class').value = document.getElementById('nick').value = '';
     });
 }
 
-// Renderizar lista de jogadores
+// Renderizar jogadores
 function renderPlayers() {
     const listDiv = document.getElementById('playerList');
     listDiv.innerHTML = '';
-
-    players.forEach((p, index) => {
+    players.forEach(p => {
         const div = document.createElement('div');
         div.className = 'playerItem';
-        div.innerHTML = `
-            ${p.name} (${p.cls}) - ${p.nick}
-            ${isADM ? `<button class="removeBtn" onclick="removePlayer('${p.nick}')">Remover</button>` : ''}
-        `;
+        div.innerHTML = `${p.name} (${p.cls}) - ${p.nick} ${isADM ? `<button class="removeBtn" onclick="removePlayer('${p.nick}')">Remover</button>` : ''}`;
         listDiv.appendChild(div);
     });
 }
 
-// Remover jogador (ADM)
+// Remover jogador
 function removePlayer(nick) {
     if (!isADM) return alert("Acesso ADM necessário!");
     db.ref('players/' + nick).remove();
 }
 
-// Exportar lista (ADM)
+// Exportar lista
 function exportList() {
     if (!isADM) return alert("Acesso ADM necessário!");
     let text = players.map(p => `${p.name}, ${p.cls}, ${p.nick}`).join("\n");
@@ -82,7 +73,7 @@ function exportList() {
     link.click();
 }
 
-// Limpar lista (ADM)
+// Limpar lista
 function clearList() {
     if (!isADM) return alert("Acesso ADM necessário!");
     if (!confirm("Deseja realmente limpar a lista?")) return;
@@ -100,38 +91,49 @@ function loginADM() {
         document.getElementById('clearBtn').classList.remove('hidden');
         document.getElementById('createGroupBtn').classList.remove('hidden');
         renderPlayers();
-    } else {
-        alert("Email não autorizado!");
-    }
+    } else alert("Email não autorizado!");
 }
 
-// Criar grupo (ADM)
+// Criar grupo
 function createGroup() {
     if (!isADM) return alert("Acesso ADM necessário!");
     if (players.length === 0) return alert("Não há jogadores na lista!");
 
-    groupCount++;
-    const groupDiv = document.createElement('div');
-    groupDiv.className = 'groupBox';
-    groupDiv.id = `group${groupCount}`;
-    groupDiv.innerHTML = `<div class="groupTitle">PT${groupCount}</div>`;
+    const newGroupRef = db.ref('groups').push();
+    const groupData = {};
+    for (let i = 0; i < 5; i++) groupData[`slot${i+1}`] = '';
+    newGroupRef.set(groupData);
+}
 
-    for (let i = 0; i < 5; i++) {
-        const select = document.createElement('select');
-        select.innerHTML = `<option value="">-- Selecionar --</option>`;
-        players.forEach(p => {
-            select.innerHTML += `<option value="${p.nick}">${p.nick}</option>`;
-        });
-        groupDiv.appendChild(select);
-    }
+// Renderizar grupos
+function renderGroups() {
+    const groupsDiv = document.getElementById('groups');
+    groupsDiv.innerHTML = '';
 
-    const removeBtn = document.createElement('button');
-    removeBtn.innerText = 'Remover Grupo';
-    removeBtn.onclick = () => {
-        groupDiv.remove();
-        groupCount--;
-    };
-    groupDiv.appendChild(removeBtn);
+    Object.keys(groups).forEach((key, idx) => {
+        const g = groups[key];
+        const groupBox = document.createElement('div');
+        groupBox.className = 'groupBox';
+        groupBox.id = `group_${key}`;
+        groupBox.innerHTML = `<div class="groupTitle">PT${idx+1}</div>`;
 
-    document.getElementById('groups').appendChild(groupDiv);
+        for (let i = 1; i <= 5; i++) {
+            const select = document.createElement('select');
+            select.innerHTML = `<option value="">-- Selecionar --</option>`;
+            players.forEach(p => select.innerHTML += `<option value="${p.nick}" ${g['slot'+i]===p.nick?'selected':''}>${p.nick}</option>`);
+            select.onchange = () => {
+                db.ref(`groups/${key}/slot${i}`).set(select.value);
+            };
+            groupBox.appendChild(select);
+        }
+
+        if (isADM) {
+            const removeBtn = document.createElement('button');
+            removeBtn.innerText = 'Remover Grupo';
+            removeBtn.onclick = () => db.ref('groups/' + key).remove();
+            groupBox.appendChild(removeBtn);
+        }
+
+        groupsDiv.appendChild(groupBox);
+    });
 }
