@@ -20,7 +20,6 @@ const ALLOWED_CLASSES = ["BK", "MG", "DL", "SM", "ELF"];
 
 // -------------------- Jogadores --------------------
 
-// Registra novo jogador
 function addPlayer() {
   const name = document.getElementById("name").value.trim();
   const playerClass = document.getElementById("class").value.trim().toUpperCase();
@@ -50,7 +49,6 @@ function addPlayer() {
   });
 }
 
-// Carrega lista em tempo real
 function loadPlayers() {
   db.ref("players").on("value", snapshot => {
     const listDiv = document.getElementById("playerList");
@@ -72,7 +70,7 @@ function loadPlayers() {
 
       // Botão remover com emoji ❌
       const removeBtn = document.createElement("button");
-      removeBtn.textContent = "\u274C"; // ❌ Unicode
+      removeBtn.textContent = "\u274C";
       removeBtn.className = "removeBtn";
       removeBtn.style.fontSize = "16px";
       removeBtn.style.lineHeight = "1";
@@ -100,7 +98,6 @@ function loadPlayers() {
       summaryDiv.appendChild(box);
     });
 
-    // Total
     const totalBox = document.createElement("div");
     totalBox.style.display = "inline-block";
     totalBox.style.margin = "5px";
@@ -116,7 +113,6 @@ function loadPlayers() {
 }
 loadPlayers();
 
-// Remover jogador com autenticação
 function removePlayer(nick) {
   promptLogin(() => {
     if (confirm(`Remover jogador ${nick}?`)) {
@@ -127,26 +123,25 @@ function removePlayer(nick) {
 
 // -------------------- Grupos --------------------
 
-// Cria um novo grupo
-function createGroup() {
-  promptLogin(() => {
-    db.ref("groups").once("value").then(snapshot => {
-      const groupCount = snapshot.numChildren();
-      if (groupCount >= 10) {
-        alert("⚠ Máximo de 10 grupos atingido!");
-        return;
-      }
-      const groupName = `PT ${groupCount + 1}`;
-      db.ref("groups/" + groupName).set({
-        members: ["", "", "", "", ""]
-      }).then(() => {
-        loadGroups(); // força renderização imediata
-      });
+async function createGroup() {
+  promptLogin(async () => {
+    const snapshot = await db.ref("groups").once("value");
+    const groupCount = snapshot.numChildren();
+
+    if (groupCount >= 10) {
+      alert("⚠ Máximo de 10 grupos atingido!");
+      return;
+    }
+
+    const groupName = `PT ${groupCount + 1}`;
+    await db.ref("groups/" + groupName).set({
+      members: ["", "", "", "", ""]
     });
+
+    loadGroups(); // força renderização imediata
   });
 }
 
-// Renderiza grupos
 function loadGroups() {
   db.ref("groups").on("value", snapshot => {
     const groupsDiv = document.getElementById("groups");
@@ -163,7 +158,6 @@ function loadGroups() {
       title.className = "groupTitle";
       title.textContent = groupName;
 
-      // Botão encerrar grupo
       const closeBtn = document.createElement("button");
       closeBtn.textContent = "Encerrar Grupo";
       closeBtn.style.backgroundColor = "#ff4d4d";
@@ -180,7 +174,6 @@ function loadGroups() {
       title.appendChild(closeBtn);
       groupBox.appendChild(title);
 
-      // 5 selects
       groupData.members.forEach((member, index) => {
         const select = document.createElement("select");
         select.innerHTML = `<option value="">-- vazio --</option>`;
@@ -209,14 +202,12 @@ function loadGroups() {
 }
 loadGroups();
 
-// Atualiza selects dos grupos
 function updateGroups() {
   loadGroups();
 }
 
 // -------------------- Admin --------------------
 
-// Exportar lista para txt
 function exportList() {
   promptLogin(() => {
     db.ref("players").get().then(snapshot => {
@@ -233,7 +224,6 @@ function exportList() {
   });
 }
 
-// Limpar lista
 function clearList() {
   promptLogin(() => {
     if (confirm("Deseja realmente limpar toda a lista?")) {
@@ -242,9 +232,14 @@ function clearList() {
   });
 }
 
-// Função de autenticação
+// -------------------- Autenticação --------------------
+
 function promptLogin(callback) {
   const email = prompt("Digite seu email autorizado:");
+  if (!email) {
+    alert("Email não informado!");
+    return;
+  }
   if (!ADMIN_EMAILS.includes(email)) {
     alert("❌ Email não autorizado!");
     return;
