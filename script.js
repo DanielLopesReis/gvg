@@ -14,8 +14,6 @@ const db = firebase.database();
 
 // Email autorizado para ações de administração
 const ADMIN_EMAILS = ["daniel.consultor01@gmail.com"];
-
-// Siglas permitidas
 const ALLOWED_CLASSES = ["BK", "MG", "DL", "SM", "ELF"];
 
 let isAdmin = false;
@@ -50,11 +48,11 @@ function addPlayer() {
   });
 }
 
+// Carrega lista em tempo real
 function loadPlayers() {
   db.ref("players").on("value", snapshot => {
     const listDiv = document.getElementById("playerList");
     const summaryDiv = document.getElementById("playerSummary");
-
     listDiv.innerHTML = "";
     summaryDiv.innerHTML = "";
 
@@ -64,23 +62,22 @@ function loadPlayers() {
 
     snapshot.forEach(child => {
       const player = child.val();
-
       const p = document.createElement("div");
       p.className = "playerItem";
-      p.innerHTML = `<span>${player.name} - ${player.playerClass} - ${player.nick}</span>`;
+      p.textContent = `${player.name} - ${player.playerClass} - ${player.nick}`;
 
-      const removeBtn = document.createElement("button");
-      removeBtn.innerHTML = "❌";
-      removeBtn.className = "removeBtn";
-      removeBtn.onclick = () => {
-        promptLogin(() => {
+      if (isAdmin) {
+        const removeBtn = document.createElement("button");
+        removeBtn.innerHTML = "❌";
+        removeBtn.className = "removeBtn";
+        removeBtn.onclick = () => {
           if (confirm(`Remover jogador ${player.nick}?`)) {
             db.ref("players/" + player.nick).remove();
           }
-        });
-      };
+        };
+        p.appendChild(removeBtn);
+      }
 
-      p.appendChild(removeBtn);
       listDiv.appendChild(p);
 
       if (ALLOWED_CLASSES.includes(player.playerClass)) {
@@ -89,6 +86,7 @@ function loadPlayers() {
       }
     });
 
+    // Contagem por classe
     ALLOWED_CLASSES.forEach(cls => {
       const box = document.createElement("div");
       box.style.display = "inline-block";
@@ -118,18 +116,19 @@ loadPlayers();
 
 // -------------------- Grupos --------------------
 function createGroup() {
-  promptLogin(() => {
-    db.ref("groups").once("value").then(snapshot => {
-      const groupCount = snapshot.numChildren();
-      if (groupCount >= 10) {
-        alert("⚠ Máximo de 10 grupos atingido!");
-        return;
-      }
-      const groupName = `PT ${groupCount + 1}`;
-      db.ref("groups/" + groupName).set({
-        members: ["", "", "", "", ""]
-      });
-    });
+  if (!isAdmin) {
+    alert("❌ Apenas administradores podem criar grupos!");
+    return;
+  }
+
+  db.ref("groups").once("value").then(snapshot => {
+    const groupCount = snapshot.numChildren();
+    if (groupCount >= 10) {
+      alert("⚠ Máximo de 10 grupos atingido!");
+      return;
+    }
+    const groupName = `PT ${groupCount + 1}`;
+    db.ref("groups/" + groupName).set({ members: ["", "", "", "", ""] });
   });
 }
 
@@ -149,19 +148,19 @@ function loadGroups() {
       title.className = "groupTitle";
       title.textContent = groupName;
 
-      const closeBtn = document.createElement("button");
-      closeBtn.textContent = "Encerrar Grupo";
-      closeBtn.style.backgroundColor = "#ff4d4d";
-      closeBtn.style.color = "white";
-      closeBtn.onclick = () => {
-        promptLogin(() => {
+      if (isAdmin) {
+        const closeBtn = document.createElement("button");
+        closeBtn.textContent = "Encerrar Grupo";
+        closeBtn.style.backgroundColor = "#ff4d4d";
+        closeBtn.style.color = "white";
+        closeBtn.onclick = () => {
           if (confirm(`Encerrar ${groupName}?`)) {
             db.ref("groups/" + groupName).remove();
           }
-        });
-      };
+        };
+        title.appendChild(closeBtn);
+      }
 
-      title.appendChild(closeBtn);
       groupBox.appendChild(title);
 
       groupData.members.forEach((member, index) => {
@@ -180,7 +179,7 @@ function loadGroups() {
         });
 
         select.onchange = () => {
-          db.ref("groups/" + groupName + "/members/" + index).set(select.value);
+          if (isAdmin) db.ref("groups/" + groupName + "/members/" + index).set(select.value);
         };
 
         groupBox.appendChild(select);
@@ -191,44 +190,40 @@ function loadGroups() {
   });
 }
 loadGroups();
+
 function updateGroups() { loadGroups(); }
 
 // -------------------- Admin --------------------
+document.getElementById("loginBtn").onclick = () => {
+  const email = prompt("Digite seu email autorizado:");
+  if (ADMIN_EMAILS.includes(email)) {
+    isAdmin = true;
+    alert("✅ Autenticação realizada! Você agora tem acesso administrativo.");
+    loadPlayers(); // Recarrega lista para exibir botões de remover
+    updateGroups();
+  } else {
+    alert("❌ Email não autorizado!");
+  }
+};
+
+document.getElementById("createGroupBtn").onclick = createGroup;
+
 document.getElementById("exportBtn").onclick = () => {
-  promptLogin(() => {
-    db.ref("players").get().then(snapshot => {
-      let txt = "";
-      snapshot.forEach(child => {
-        txt += `${child.val().name} - ${child.val().playerClass} - ${child.val().nick}\n`;
-      });
-      const blob = new Blob([txt], { type: "text/plain" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "gvg_lista.txt";
-      a.click();
+  if (!isAdmin) { alert("❌ Apenas administradores podem exportar!"); return; }
+  db.ref("players").get().then(snapshot => {
+    let txt = "";
+    snapshot.forEach(child => {
+      txt += `${child.val().name} - ${child.val().playerClass} - ${child.val().nick}\n`;
     });
+    const blob = new Blob([txt], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "gvg_lista.txt";
+    a.click();
   });
 };
 
 document.getElementById("clearBtn").onclick = () => {
-  promptLogin(() => {
-    if (confirm("Deseja realmente limpar toda a lista?")) {
-      db.ref("players").remove();
-    }
-  });
+  if (!isAdmin) { alert("❌ Apenas administradores podem limpar a lista!"); return; }
+  if (confirm("Deseja realmente limpar toda a lista?")) db.ref("players").remove();
 };
-
-// Função de autenticação
-function promptLogin(callback) {
-  if (isAdmin) { callback(); return; }  // já logado
-  const email = prompt("Digite seu email autorizado:");
-  if (!ADMIN_EMAILS.includes(email)) {
-    alert("❌ Email não autorizado!");
-    return;
-  }
-  isAdmin = true;
-  callback();
-}
-
-// Associar botão Criar Grupo
-document.getElementById("createGroupBtn").onclick = createGroup;
