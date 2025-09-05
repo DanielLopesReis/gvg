@@ -6,33 +6,33 @@
     <title>ExilliuM - Eventos PVP</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body style="background-color:#000; color:#fff; font-family:Arial, sans-serif;">
 
-<h1>ExilliuM</h1>
-<h2>Eventos PVP - Registro de jogadores</h2>
+    <h1>ExilliuM</h1>
+    <h2>Eventos PVP - Registro de jogadores</h2>
 
-<button onclick="loginADM()">ADM</button>
+    <button style="background-color:red; color:white;" onclick="loginADM()">ADM</button>
 
-<input type="text" id="name" placeholder="Nome">
-<input type="text" id="class" placeholder="Classe (BK, MG, DL, SM, ELF)">
-<input type="text" id="nick" placeholder="Nick">
-<br>
-<button onclick="addPlayer()">Registrar jogador</button>
-<button onclick="exportList()">Exportar lista</button>
-<button onclick="clearList()">Limpar lista</button>
+    <input type="text" id="name" placeholder="Nome">
+    <input type="text" id="class" placeholder="Classe (BK, MG, DL, SM, ELF)">
+    <input type="text" id="nick" placeholder="Nick">
+    <br>
+    <button style="background-color:red; color:white;" onclick="addPlayer()">Registrar jogador</button>
+    <button style="background-color:red; color:white;" onclick="exportList()">Exportar lista</button>
+    <button style="background-color:red; color:white;" onclick="clearList()">Limpar lista</button>
 
-<div id="playerList"></div>
-<div id="playerSummary"></div>
+    <div id="playerList"></div>
+    <div id="playerSummary"></div>
 
-<h2>Grupos</h2>
-<button onclick="createGroup()">Criar Grupo</button>
-<div id="groups"></div>
+    <h2>Grupos</h2>
+    <button style="background-color:red; color:white;" onclick="createGroup()">Criar Grupo</button>
+    <div id="groups"></div>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
-<script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

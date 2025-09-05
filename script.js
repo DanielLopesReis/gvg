@@ -15,14 +15,12 @@ const ADMIN_EMAILS = ["daniel.consultor01@gmail.com"];
 const ALLOWED_CLASSES = ["BK", "MG", "DL", "SM", "ELF"];
 let isADM = false;
 
-// -------------------- Login ADM --------------------
 function loginADM() {
   const email = prompt("Digite seu email autorizado:");
   if (ADMIN_EMAILS.includes(email)) {
     isADM = true;
     alert("✅ Acesso ADM liberado!");
     loadPlayers();
-    updateGroups();
   } else alert("❌ Email não autorizado!");
 }
 
@@ -62,6 +60,7 @@ function loadPlayers() {
       if (isADM) {
         const btn = document.createElement("button");
         btn.textContent = "❌"; btn.className = "removeBtn";
+        btn.style.backgroundColor="red"; btn.style.color="white";
         btn.onclick = () => removePlayer(player.nick);
         div.appendChild(btn);
       }
@@ -98,29 +97,32 @@ function removePlayer(nick) {
 // -------------------- Grupos --------------------
 function createGroup() {
   if (!isADM) return alert("Ação ADM necessária!");
+  db.ref("players").get().then(playersSnap => {
+    if (!playersSnap.exists()) return alert("Não há jogadores na lista!");
 
-  db.ref("players").get().then(snapshot => {
-    if (!snapshot.exists()) {
-      alert("❌ Não há jogadores na lista!");
-      return;
-    }
+    db.ref("groups").once("value").then(snapshot => {
+      const groupName = `PT${snapshot.numChildren() + 1}`;
+      const playersArray = [];
+      playersSnap.forEach(pSnap => playersArray.push(pSnap.key));
 
-    const groupName = `PT ${Date.now()}`; // nome único por timestamp
-    db.ref("groups/" + groupName).set({ members: [] }).then(() => {
-      alert(`✅ Grupo "${groupName}" criado!`);
-      updateGroups();
+      db.ref("groups/" + groupName).set({ members: [] }).then(() => {
+        alert(`Grupo ${groupName} criado!`);
+        loadGroups();
+      });
     });
   });
 }
 
-function updateGroups() {
+function loadGroups() {
   db.ref("groups").on("value", snapshot => {
     const groupsDiv = document.getElementById("groups"); groupsDiv.innerHTML="";
     snapshot.forEach(child => {
       const groupName = child.key, groupData = child.val();
       const box = document.createElement("div"); box.className="groupBox";
+      box.style.border="1px solid #fff"; box.style.padding="10px"; box.style.margin="5px"; box.style.borderRadius="5px";
 
       const title = document.createElement("div"); title.className="groupTitle"; title.textContent=groupName;
+      title.style.fontWeight="bold";
       if (isADM) {
         const btn = document.createElement("button"); btn.textContent="Encerrar Grupo";
         btn.style.backgroundColor="#ff4d4d"; btn.style.color="white"; btn.style.marginLeft="10px";
@@ -129,20 +131,19 @@ function updateGroups() {
       }
       box.appendChild(title);
 
-      const playerCount = groupData.members ? groupData.members.length : 0;
-      const selectCount = Math.max(5, playerCount); // sempre 5 selects visíveis, mas podem ser vazios
-      for(let i=0;i<selectCount;i++){
-        const select = document.createElement("select");
-        select.innerHTML = `<option value="">-- vazio --</option>`;
+      for(let i=0;i<5;i++){
+        const select=document.createElement("select");
+        select.innerHTML=`<option value="">-- vazio --</option>`;
         db.ref("players").once("value").then(playersSnap=>{
           playersSnap.forEach(pSnap=>{
-            const nick = pSnap.key;
-            const opt = document.createElement("option"); opt.value = nick; opt.textContent = nick;
-            if(groupData.members && groupData.members[i]===nick) opt.selected=true;
+            const nick=pSnap.key;
+            const opt=document.createElement("option");
+            opt.value=nick; opt.textContent=nick;
+            if(groupData.members[i]===nick) opt.selected=true;
             select.appendChild(opt);
           });
         });
-        select.onchange = () => {
+        select.onchange=()=>{
           const members=[]; box.querySelectorAll("select").forEach(s=>{if(s.value) members.push(s.value);});
           db.ref("groups/"+groupName+"/members").set(members);
         };
@@ -153,6 +154,8 @@ function updateGroups() {
     });
   });
 }
+loadGroups();
+function updateGroups(){loadGroups();}
 
 // -------------------- Export & Limpar --------------------
 function exportList() {
@@ -163,7 +166,6 @@ function exportList() {
     const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="gvg_lista.txt"; a.click();
   });
 }
-
 function clearList() {
   if (!isADM) return alert("Ação ADM necessária!");
   if(confirm("Deseja realmente limpar toda a lista?")) db.ref("players").remove();
