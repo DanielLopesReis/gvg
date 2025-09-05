@@ -1,143 +1,164 @@
-// Firebase config
+// 🔥 Config do Firebase
 const firebaseConfig = {
-    apiKey: "SUA_API_KEY",
-    authDomain: "SEU_PROJECT_ID.firebaseapp.com",
-    databaseURL: "https://SEU_PROJECT_ID.firebaseio.com",
-    projectId: "SEU_PROJECT_ID",
-    storageBucket: "SEU_PROJECT_ID.appspot.com",
-    messagingSenderId: "SEU_MESSAGING_SENDER_ID",
-    appId: "SEU_APP_ID"
+  apiKey: "API_KEY_AQUI",
+  authDomain: "PROJECT.firebaseapp.com",
+  databaseURL: "https://PROJECT.firebaseio.com",
+  projectId: "PROJECT",
+  storageBucket: "PROJECT.appspot.com",
+  messagingSenderId: "SENDER_ID",
+  appId: "APP_ID"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+const ADMIN_EMAILS = ["daniel.consultor01@gmail.com"];
+const ALLOWED_CLASSES = ["BK", "MG", "DL", "SM", "ELF"];
 let isADM = false;
 
-// Emails autorizados
-const ADMIN_EMAILS = ["daniel.consultor01@gmail.com"];
-
-// Função ADM
 function loginADM() {
-    const email = prompt("Digite seu email autorizado:");
-    if (ADMIN_EMAILS.includes(email)) {
-        isADM = true;
-        alert("✅ Acesso ADM liberado!");
-    } else {
-        alert("❌ Email não autorizado!");
-    }
+  const email = prompt("Digite seu email autorizado:");
+  if (ADMIN_EMAILS.includes(email)) {
+    isADM = true;
+    alert("✅ Acesso ADM liberado!");
+    loadPlayers();
+    loadGroups();
+  } else alert("❌ Email não autorizado!");
 }
 
-// Função adicionar jogador
+// -------------------- Jogadores --------------------
 function addPlayer() {
-    const name = document.getElementById("name").value.trim();
-    const playerClass = document.getElementById("class").value.trim().toUpperCase();
-    const nick = document.getElementById("nick").value.trim();
+  const name = document.getElementById("name").value.trim();
+  const playerClass = document.getElementById("class").value.trim().toUpperCase();
+  const nick = document.getElementById("nick").value.trim();
 
-    if (!name || !playerClass || !nick) return alert("Preencha todos os campos!");
-    
-    db.ref("players/" + nick).get().then(snapshot => {
-        if (snapshot.exists()) return alert("Este nick já foi registrado!");
-        db.ref("players/" + nick).set({ name, playerClass, nick }).then(() => {
-            renderPlayers();
-            document.getElementById("name").value = "";
-            document.getElementById("class").value = "";
-            document.getElementById("nick").value = "";
-        });
+  if (!name || !playerClass || !nick) return alert("Preencha todos os campos!");
+  if (!ALLOWED_CLASSES.includes(playerClass)) return alert("Classe inválida!");
+
+  db.ref("players/" + nick).get().then(snapshot => {
+    if (snapshot.exists()) return alert("Este nick já foi registrado!");
+    db.ref("players/" + nick).set({ name, playerClass, nick }).then(() => {
+      document.getElementById("name").value = "";
+      document.getElementById("class").value = "";
+      document.getElementById("nick").value = "";
     });
+  });
 }
 
-// Renderizar lista de jogadores
-function renderPlayers() {
-    db.ref("players").get().then(snapshot => {
-        const container = document.getElementById("playerList");
-        container.innerHTML = "";
-        snapshot.forEach(child => {
-            const player = child.val();
-            const div = document.createElement("div");
-            div.className = "playerItem";
-            div.innerHTML = `${player.nick} (${player.name} - ${player.playerClass})`;
-            
-            if (isADM) {
-                const removeBtn = document.createElement("button");
-                removeBtn.className = "removeBtn";
-                removeBtn.innerText = "❌";
-                removeBtn.onclick = () => removePlayer(player.nick);
-                div.appendChild(removeBtn);
-            }
+function loadPlayers() {
+  db.ref("players").on("value", snapshot => {
+    const listDiv = document.getElementById("playerList");
+    const summaryDiv = document.getElementById("playerSummary");
+    listDiv.innerHTML = ""; summaryDiv.innerHTML = "";
 
-            container.appendChild(div);
-        });
+    const classCount = {}; ALLOWED_CLASSES.forEach(cls => classCount[cls] = 0);
+    let totalPlayers = 0;
+
+    snapshot.forEach(child => {
+      const player = child.val();
+      const div = document.createElement("div");
+      div.className = "playerItem";
+      div.textContent = `${player.name} - ${player.playerClass} - ${player.nick}`;
+      if (isADM) {
+        const btn = document.createElement("button");
+        btn.textContent = "❌"; btn.className = "removeBtn";
+        btn.onclick = () => removePlayer(player.nick);
+        div.appendChild(btn);
+      }
+      listDiv.appendChild(div);
+
+      if (ALLOWED_CLASSES.includes(player.playerClass)) {
+        classCount[player.playerClass]++; totalPlayers++;
+      }
     });
+
+    ALLOWED_CLASSES.forEach(cls => {
+      const box = document.createElement("div");
+      box.style.display="inline-block"; box.style.margin="5px";
+      box.style.padding="10px"; box.style.backgroundColor="#4e4e4e";
+      box.style.borderRadius="4px"; box.style.fontWeight="bold";
+      box.textContent = `${cls}: ${classCount[cls]}`; summaryDiv.appendChild(box);
+    });
+
+    const totalBox = document.createElement("div");
+    totalBox.style.display="inline-block"; totalBox.style.margin="5px";
+    totalBox.style.padding="10px"; totalBox.style.backgroundColor="#6e6e6e";
+    totalBox.style.borderRadius="4px"; totalBox.style.fontWeight="bold";
+    totalBox.textContent = `Total: ${totalPlayers}`; summaryDiv.appendChild(totalBox);
+
+    updateGroups();
+  });
 }
 
-// Remover jogador
 function removePlayer(nick) {
-    if (!isADM) return alert("Acesso ADM necessário!");
-    db.ref("players/" + nick).remove().then(renderPlayers);
+  if (!isADM) return alert("Ação ADM necessária!");
+  if (confirm(`Remover jogador ${nick}?`)) db.ref("players/" + nick).remove();
 }
 
-// Limpar lista
-function clearList() {
-    if (!isADM) return alert("Acesso ADM necessário!");
-    db.ref("players").remove().then(renderPlayers);
-}
-
-// Exportar lista
-function exportList() {
-    if (!isADM) return alert("Acesso ADM necessário!");
-    db.ref("players").get().then(snapshot => {
-        let data = "";
-        snapshot.forEach(child => {
-            const p = child.val();
-            data += `${p.nick}, ${p.name}, ${p.playerClass}\n`;
-        });
-        alert(data || "Lista vazia!");
-    });
-}
-
-// Criar grupo
+// -------------------- Grupos --------------------
 function createGroup() {
-    if (!isADM) return alert("Acesso ADM necessário!");
+  if (!isADM) return alert("Ação ADM necessária!");
+  db.ref("players").get().then(playersSnap => {
+    if (!playersSnap.exists()) return alert("Não há jogadores na lista!");
     
-    db.ref("players").get().then(snapshot => {
-        if (!snapshot.exists()) return alert("Não há jogadores na lista!");
-        const players = [];
-        snapshot.forEach(child => players.push(child.val()));
-
-        const groupsDiv = document.getElementById("groups");
-        const groupBox = document.createElement("div");
-        groupBox.className = "groupBox";
-
-        const groupName = `PT${groupsDiv.children.length + 1}`;
-        const title = document.createElement("div");
-        title.className = "groupTitle";
-        title.innerText = groupName;
-        groupBox.appendChild(title);
-
-        for (let i = 0; i < 5; i++) {
-            const select = document.createElement("select");
-            const emptyOption = document.createElement("option");
-            emptyOption.value = "";
-            emptyOption.innerText = "-";
-            select.appendChild(emptyOption);
-
-            players.forEach(p => {
-                const opt = document.createElement("option");
-                opt.value = p.nick;
-                opt.innerText = p.nick;
-                select.appendChild(opt);
-            });
-            groupBox.appendChild(select);
-        }
-
-        const removeBtn = document.createElement("button");
-        removeBtn.innerText = "Remover Grupo";
-        removeBtn.onclick = () => groupsDiv.removeChild(groupBox);
-        groupBox.appendChild(removeBtn);
-
-        groupsDiv.appendChild(groupBox);
+    db.ref("groups").once("value").then(snapshot => {
+      const groupName = `PT ${snapshot.numChildren() + 1}`;
+      db.ref("groups/" + groupName).set({ members: [] }).then(() => loadGroups());
     });
+  });
 }
 
-// Inicializa render
-renderPlayers();
+function loadGroups() {
+  db.ref("groups").on("value", snapshot => {
+    const groupsDiv = document.getElementById("groups"); groupsDiv.innerHTML="";
+    snapshot.forEach(child => {
+      const groupName = child.key, groupData=child.val();
+      const box = document.createElement("div"); box.className="groupBox";
+
+      const title = document.createElement("div"); title.className="groupTitle"; title.textContent=groupName;
+      if (isADM) {
+        const btn = document.createElement("button"); btn.textContent="Encerrar Grupo";
+        btn.style.backgroundColor="#ff4d4d"; btn.style.color="white"; btn.style.marginLeft="10px";
+        btn.onclick = ()=> { if(confirm(`Encerrar ${groupName}?`)) db.ref("groups/"+groupName).remove(); };
+        title.appendChild(btn);
+      }
+      box.appendChild(title);
+
+      for(let i=0;i<5;i++){
+        const select=document.createElement("select");
+        select.innerHTML=`<option value="">-- vazio --</option>`;
+        db.ref("players").once("value").then(playersSnap=>{
+          playersSnap.forEach(pSnap=>{
+            const nick=pSnap.key;
+            const opt=document.createElement("option");
+            opt.value=nick; opt.textContent=nick;
+            if(groupData.members[i]===nick) opt.selected=true;
+            select.appendChild(opt);
+          });
+        });
+        select.onchange=()=>{
+          const members=[]; box.querySelectorAll("select").forEach(s=>{if(s.value) members.push(s.value);});
+          db.ref("groups/"+groupName+"/members").set(members);
+        };
+        box.appendChild(select);
+      }
+
+      groupsDiv.appendChild(box);
+    });
+  });
+}
+
+function updateGroups(){loadGroups();}
+
+// -------------------- Export & Limpar --------------------
+function exportList() {
+  if (!isADM) return alert("Ação ADM necessária!");
+  db.ref("players").get().then(snapshot=>{
+    let txt=""; snapshot.forEach(child=>{txt+=`${child.val().name} - ${child.val().playerClass} - ${child.val().nick}\n`;});
+    const blob = new Blob([txt], {type:"text/plain"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="gvg_lista.txt"; a.click();
+  });
+}
+function clearList() {
+  if (!isADM) return alert("Ação ADM necessária!");
+  if(confirm("Deseja realmente limpar toda a lista?")) db.ref("players").remove();
+}
