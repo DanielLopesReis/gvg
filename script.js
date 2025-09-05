@@ -48,8 +48,15 @@ function loadPlayers() {
 
             // remover apenas para admin
             const removeBtn = document.createElement("button");
-            removeBtn.textContent = "❌";
-            removeBtn.className = "removeBtn";
+            removeBtn.textContent = "X";
+            removeBtn.style.backgroundColor = "red";
+            removeBtn.style.color = "black";
+            removeBtn.style.width = "20px";
+            removeBtn.style.height = "20px";
+            removeBtn.style.border = "none";
+            removeBtn.style.marginLeft = "5px";
+            removeBtn.style.cursor = "pointer";
+
             if(isAdmin) removeBtn.style.display = "inline-block";
             removeBtn.onclick = () => removePlayer(player.nick);
             p.appendChild(removeBtn);
@@ -96,7 +103,11 @@ function loadGroups(){
         const groupsDiv = document.getElementById("groups");
         groupsDiv.innerHTML = "";
 
-        const selectedNicks = {};
+        const selectedNicks = []; // todos os nicks selecionados em qualquer grupo
+        snapshot.forEach(child => {
+            const groupData = child.val();
+            groupData.members.forEach(nick => { if(nick) selectedNicks.push(nick); });
+        });
 
         snapshot.forEach(child => {
             const groupName = child.key;
@@ -111,9 +122,15 @@ function loadGroups(){
 
             // remover grupo
             const removeGroupBtn = document.createElement("button");
-            removeGroupBtn.textContent = "❌";
-            removeGroupBtn.style.backgroundColor = "#ff4d4d";
-            removeGroupBtn.style.color = "white";
+            removeGroupBtn.textContent = "X";
+            removeGroupBtn.style.backgroundColor = "red";
+            removeGroupBtn.style.color = "black";
+            removeGroupBtn.style.width = "20px";
+            removeGroupBtn.style.height = "20px";
+            removeGroupBtn.style.border = "none";
+            removeGroupBtn.style.marginLeft = "5px";
+            removeGroupBtn.style.cursor = "pointer";
+
             removeGroupBtn.onclick = () => {
                 if(confirm(`Remover grupo ${groupName}?`)){
                     db.ref("groups/" + groupName).remove();
@@ -125,10 +142,12 @@ function loadGroups(){
             groupData.members.forEach((member,index)=>{
                 const select = document.createElement("select");
                 select.innerHTML = `<option value="">-- vazio --</option>`;
+
                 db.ref("players").once("value").then(playersSnap => {
                     playersSnap.forEach(pSnap => {
                         const nick = pSnap.key;
-                        if(!Object.values(selectedNicks).includes(nick)){
+                        // só exibe se ainda não estiver selecionado em nenhum select
+                        if(!selectedNicks.includes(nick) || member === nick){
                             const option = document.createElement("option");
                             option.value = nick;
                             option.textContent = nick;
@@ -137,9 +156,19 @@ function loadGroups(){
                         }
                     });
                 });
+
                 select.onchange = ()=>{
+                    const oldValue = groupData.members[index];
+                    const oldIndex = selectedNicks.indexOf(oldValue);
+                    if(oldIndex > -1) selectedNicks.splice(oldIndex,1);
+
+                    groupData.members[index] = select.value;
+                    if(select.value) selectedNicks.push(select.value);
+
                     db.ref("groups/"+groupName+"/members/"+index).set(select.value);
+                    loadGroups(); // atualizar para evitar duplicidade
                 }
+
                 groupBox.appendChild(select);
             });
 
