@@ -15,6 +15,7 @@ const ADMIN_EMAILS = ["daniel.consultor01@gmail.com"];
 const ALLOWED_CLASSES = ["BK", "MG", "DL", "SM", "ELF"];
 let isADM = false;
 
+// -------------------- Autenticação ADM --------------------
 function loginADM() {
   const email = prompt("Digite seu email autorizado:");
   if (ADMIN_EMAILS.includes(email)) {
@@ -22,7 +23,9 @@ function loginADM() {
     alert("✅ Acesso ADM liberado!");
     loadPlayers();
     loadGroups();
-  } else alert("❌ Email não autorizado!");
+  } else {
+    alert("❌ Email não autorizado!");
+  }
 }
 
 // -------------------- Jogadores --------------------
@@ -85,7 +88,7 @@ function loadPlayers() {
     totalBox.style.borderRadius="4px"; totalBox.style.fontWeight="bold";
     totalBox.textContent = `Total: ${totalPlayers}`; summaryDiv.appendChild(totalBox);
 
-    updateGroups();
+    loadGroups();
   });
 }
 
@@ -97,13 +100,12 @@ function removePlayer(nick) {
 // -------------------- Grupos --------------------
 function createGroup() {
   if (!isADM) return alert("Ação ADM necessária!");
-  db.ref("players").get().then(playersSnap => {
-    if (!playersSnap.exists()) return alert("Não há jogadores na lista!");
+  db.ref("players").get().then(snapshot => {
+    if (!snapshot.exists()) return alert("Não há jogadores na lista!");
     
-    db.ref("groups").once("value").then(snapshot => {
-      const groupName = `PT ${snapshot.numChildren() + 1}`;
-      db.ref("groups/" + groupName).set({ members: [] }).then(() => loadGroups());
-    });
+    const groupName = `PT ${Math.floor(Math.random() * 10000)}`; // Nome temporário
+    db.ref("groups/" + groupName).set({ members: [] });
+    alert(`Grupo ${groupName} criado!`);
   });
 }
 
@@ -111,7 +113,7 @@ function loadGroups() {
   db.ref("groups").on("value", snapshot => {
     const groupsDiv = document.getElementById("groups"); groupsDiv.innerHTML="";
     snapshot.forEach(child => {
-      const groupName = child.key, groupData=child.val();
+      const groupName = child.key, groupData = child.val();
       const box = document.createElement("div"); box.className="groupBox";
 
       const title = document.createElement("div"); title.className="groupTitle"; title.textContent=groupName;
@@ -147,8 +149,6 @@ function loadGroups() {
   });
 }
 
-function updateGroups(){loadGroups();}
-
 // -------------------- Export & Limpar --------------------
 function exportList() {
   if (!isADM) return alert("Ação ADM necessária!");
@@ -162,3 +162,6 @@ function clearList() {
   if (!isADM) return alert("Ação ADM necessária!");
   if(confirm("Deseja realmente limpar toda a lista?")) db.ref("players").remove();
 }
+
+// Inicialização
+loadPlayers();
