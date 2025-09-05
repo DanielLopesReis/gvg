@@ -18,7 +18,6 @@ const ADMIN_EMAILS = ["daniel.consultor01@gmail.com"];
 // Siglas permitidas
 const ALLOWED_CLASSES = ["BK", "MG", "DL", "SM", "ELF"];
 
-// Variável de controle de autenticação
 let isAdmin = false;
 
 // -------------------- Jogadores --------------------
@@ -73,15 +72,19 @@ function loadPlayers() {
       p.className = "playerItem";
       p.innerHTML = `${player.name} - ${player.playerClass} - ${player.nick}`;
 
-      // Botão remover (apenas se admin)
-      if (isAdmin) {
-        const removeBtn = document.createElement("button");
-        removeBtn.textContent = "❌";
-        removeBtn.className = "removeBtn";
-        removeBtn.onclick = () => removePlayer(player.nick);
-        p.appendChild(removeBtn);
-      }
+      // Botão remover
+      const removeBtn = document.createElement("button");
+      removeBtn.innerHTML = "❌";
+      removeBtn.className = "removeBtn";
+      removeBtn.onclick = () => {
+        promptLogin(() => {
+          if (confirm(`Remover jogador ${player.nick}?`)) {
+            db.ref("players/" + player.nick).remove();
+          }
+        });
+      };
 
+      p.appendChild(removeBtn);
       listDiv.appendChild(p);
 
       if (ALLOWED_CLASSES.includes(player.playerClass)) {
@@ -119,18 +122,14 @@ function loadPlayers() {
 }
 loadPlayers();
 
-// Remover jogador
-function removePlayer(nick) {
-  if (!isAdmin) return;
-  if (confirm(`Remover jogador ${nick}?`)) {
-    db.ref("players/" + nick).remove();
-  }
-}
-
 // -------------------- Grupos --------------------
 
 function createGroup() {
-  if (!isAdmin) return;
+  if (!isAdmin) {
+    alert("❌ Apenas administradores podem criar grupos!");
+    return;
+  }
+
   db.ref("groups").once("value").then(snapshot => {
     const groupCount = snapshot.numChildren();
     if (groupCount >= 10) {
@@ -160,47 +159,42 @@ function loadGroups() {
       title.className = "groupTitle";
       title.textContent = groupName;
 
-      // Botão encerrar grupo
-      if (isAdmin) {
-        const closeBtn = document.createElement("button");
-        closeBtn.textContent = "Encerrar Grupo";
-        closeBtn.style.backgroundColor = "#ff4d4d";
-        closeBtn.style.color = "white";
-        closeBtn.style.marginLeft = "10px";
-        closeBtn.onclick = () => {
+      const closeBtn = document.createElement("button");
+      closeBtn.textContent = "Encerrar Grupo";
+      closeBtn.style.backgroundColor = "#ff4d4d";
+      closeBtn.style.color = "white";
+      closeBtn.onclick = () => {
+        promptLogin(() => {
           if (confirm(`Encerrar ${groupName}?`)) {
             db.ref("groups/" + groupName).remove();
           }
-        };
-        title.appendChild(closeBtn);
-      }
+        });
+      };
 
+      title.appendChild(closeBtn);
       groupBox.appendChild(title);
 
-      // 5 selects (só se admin)
-      if (isAdmin) {
-        groupData.members.forEach((member, index) => {
-          const select = document.createElement("select");
-          select.innerHTML = `<option value="">-- vazio --</option>`;
+      groupData.members.forEach((member, index) => {
+        const select = document.createElement("select");
+        select.innerHTML = `<option value="">-- vazio --</option>`;
 
-          db.ref("players").once("value").then(playersSnap => {
-            playersSnap.forEach(playerSnap => {
-              const nick = playerSnap.key;
-              const option = document.createElement("option");
-              option.value = nick;
-              option.textContent = nick;
-              if (member === nick) option.selected = true;
-              select.appendChild(option);
-            });
+        db.ref("players").once("value").then(playersSnap => {
+          playersSnap.forEach(playerSnap => {
+            const nick = playerSnap.key;
+            const option = document.createElement("option");
+            option.value = nick;
+            option.textContent = nick;
+            if (member === nick) option.selected = true;
+            select.appendChild(option);
           });
-
-          select.onchange = () => {
-            db.ref("groups/" + groupName + "/members/" + index).set(select.value);
-          };
-
-          groupBox.appendChild(select);
         });
-      }
+
+        select.onchange = () => {
+          db.ref("groups/" + groupName + "/members/" + index).set(select.value);
+        };
+
+        groupBox.appendChild(select);
+      });
 
       groupsDiv.appendChild(groupBox);
     });
@@ -214,43 +208,40 @@ function updateGroups() {
 
 // -------------------- Admin --------------------
 
-function adminLogin() {
+document.getElementById("exportBtn").onclick = () => {
+  promptLogin(() => {
+    db.ref("players").get().then(snapshot => {
+      let txt = "";
+      snapshot.forEach(child => {
+        txt += `${child.val().name} - ${child.val().playerClass} - ${child.val().nick}\n`;
+      });
+      const blob = new Blob([txt], { type: "text/plain" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "gvg_lista.txt";
+      a.click();
+    });
+  });
+};
+
+document.getElementById("clearBtn").onclick = () => {
+  promptLogin(() => {
+    if (confirm("Deseja realmente limpar toda a lista?")) {
+      db.ref("players").remove();
+    }
+  });
+};
+
+// Função de autenticação
+function promptLogin(callback) {
   const email = prompt("Digite seu email autorizado:");
   if (!ADMIN_EMAILS.includes(email)) {
     alert("❌ Email não autorizado!");
     return;
   }
   isAdmin = true;
-  alert("✅ Acesso administrativo liberado!");
-
-  document.getElementById("exportBtn").disabled = false;
-  document.getElementById("clearBtn").disabled = false;
-  document.getElementById("createGroupBtn").disabled = false;
-
-  loadPlayers();
-  loadGroups();
+  callback();
 }
 
-// Exportar lista
-function exportList() {
-  if (!isAdmin) return;
-  db.ref("players").get().then(snapshot => {
-    let txt = "";
-    snapshot.forEach(child => {
-      txt += `${child.val().name} - ${child.val().playerClass} - ${child.val().nick}\n`;
-    });
-    const blob = new Blob([txt], { type: "text/plain" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "gvg_lista.txt";
-    a.click();
-  });
-}
-
-// Limpar lista
-function clearList() {
-  if (!isAdmin) return;
-  if (confirm("Deseja realmente limpar toda a lista?")) {
-    db.ref("players").remove();
-  }
-}
+// Associar botão Criar Grupo
+document.getElementById("createGroupBtn").onclick = createGroup;
