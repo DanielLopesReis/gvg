@@ -78,24 +78,24 @@
     <h1>ExilliuM</h1>
     <h2>Eventos PVP - Registro de jogadores</h2>
 
-    <!-- Botão de autenticação global ADM -->
-    <button id="loginAdmBtn">ADM Login</button>
+    <!-- Botão ADM -->
+    <button onclick="loginADM()">Login ADM</button>
 
-    <div style="margin-top:15px;">
-        <input type="text" id="name" placeholder="Nome">
-        <input type="text" id="class" placeholder="Classe (BK, MG, DL, SM, ELF)">
-        <input type="text" id="nick" placeholder="Nick">
-        <br>
-        <button onclick="addPlayer()">Registrar jogador</button>
-        <button id="exportBtn" onclick="exportList()" disabled>Exportar lista</button>
-        <button id="clearBtn" onclick="clearList()" disabled>Limpar lista</button>
-    </div>
+    <br><br>
+
+    <input type="text" id="name" placeholder="Nome">
+    <input type="text" id="class" placeholder="Classe (BK, MG, DL, SM, ELF)">
+    <input type="text" id="nick" placeholder="Nick">
+    <br>
+    <button onclick="addPlayer()">Registrar jogador</button>
+    <button onclick="exportList()">Exportar lista</button>
+    <button onclick="clearList()">Limpar lista</button>
 
     <div id="playerList"></div>
     <div id="playerSummary"></div>
 
     <h2>Grupos</h2>
-    <button id="createGroupBtn" onclick="createGroup()" disabled>Criar Grupo</button>
+    <button onclick="createGroup()">Criar Grupo</button>
     <div id="groups"></div>
 
     <!-- Firebase SDK -->

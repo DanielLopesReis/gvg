@@ -8,17 +8,32 @@ const firebaseConfig = {
   messagingSenderId: "559308187802",
   appId: "1:559308187802:web:5a7300cd5003ef5cd89723"
 };
+
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// Email autorizado para ações de administração
+// Email autorizado para ações críticas
 const ADMIN_EMAILS = ["daniel.consultor01@gmail.com"];
-let isAdmin = false; // Flag global ADM
+let isAdmin = false; // autenticação global ADM
 
 // Siglas permitidas
 const ALLOWED_CLASSES = ["BK", "MG", "DL", "SM", "ELF"];
 
+// -------------------- Autenticação Global ADM --------------------
+function loginADM() {
+  const email = prompt("Digite seu email ADM autorizado:");
+  if (!ADMIN_EMAILS.includes(email)) {
+    alert("❌ Email não autorizado!");
+    isAdmin = false;
+    return;
+  }
+  isAdmin = true;
+  alert("✅ Autenticado como ADM! Agora você pode usar ações críticas.");
+}
+
 // -------------------- Jogadores --------------------
+
+// Registra novo jogador
 function addPlayer() {
   const name = document.getElementById("name").value.trim();
   const playerClass = document.getElementById("class").value.trim().toUpperCase();
@@ -68,11 +83,10 @@ function loadPlayers() {
       p.className = "playerItem";
       p.innerHTML = `${player.name} - ${player.playerClass} - ${player.nick}`;
 
-      // Botão remover individual
+      // Botão remover
       const removeBtn = document.createElement("button");
       removeBtn.textContent = "❌";
       removeBtn.className = "removeBtn";
-      removeBtn.disabled = !isAdmin;
       removeBtn.onclick = () => removePlayer(player.nick);
       p.appendChild(removeBtn);
 
@@ -97,6 +111,7 @@ function loadPlayers() {
       summaryDiv.appendChild(box);
     });
 
+    // Total
     const totalBox = document.createElement("div");
     totalBox.style.display = "inline-block";
     totalBox.style.margin = "5px";
@@ -107,70 +122,35 @@ function loadPlayers() {
     totalBox.textContent = `Total: ${totalPlayers}`;
     summaryDiv.appendChild(totalBox);
 
-    updateGroups();
+    updateGroups(); // atualiza selects dos grupos
   });
 }
 loadPlayers();
 
-// -------------------- Admin --------------------
-
-// Login ADM global
-document.getElementById("loginAdmBtn").onclick = () => {
-  const email = prompt("Digite seu email ADM:");
-  if (ADMIN_EMAILS.includes(email)) {
-    alert("✅ Login ADM realizado!");
-    isAdmin = true;
-    document.getElementById("exportBtn").disabled = false;
-    document.getElementById("clearBtn").disabled = false;
-    document.getElementById("createGroupBtn").disabled = false;
-    loadPlayers(); // Atualiza botões individuais
-    loadGroups();  // Atualiza botões remover grupo
-  } else {
-    alert("❌ Email não autorizado!");
-  }
-};
-
 // Remover jogador
 function removePlayer(nick) {
-  if (!isAdmin) { alert("❌ Acesso negado!"); return; }
+  if (!isAdmin) return alert("❌ Ação restrita a ADM. Use o botão ADM.");
   if (confirm(`Remover jogador ${nick}?`)) {
     db.ref("players/" + nick).remove();
   }
 }
 
-// Exportar lista
-function exportList() {
-  if (!isAdmin) { alert("❌ Acesso negado!"); return; }
-  db.ref("players").get().then(snapshot => {
-    let txt = "";
-    snapshot.forEach(child => {
-      txt += `${child.val().name} - ${child.val().playerClass} - ${child.val().nick}\n`;
-    });
-    const blob = new Blob([txt], { type: "text/plain" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "gvg_lista.txt";
-    a.click();
-  });
-}
-
-// Limpar lista
-function clearList() {
-  if (!isAdmin) { alert("❌ Acesso negado!"); return; }
-  if (confirm("Deseja realmente limpar toda a lista?")) {
-    db.ref("players").remove();
-  }
-}
-
 // -------------------- Grupos --------------------
+
+// Cria novo grupo (até 10)
 function createGroup() {
-  if (!isAdmin) { alert("❌ Acesso negado!"); return; }
+  if (!isAdmin) return alert("❌ Ação restrita a ADM. Use o botão ADM.");
 
   db.ref("groups").once("value").then(snapshot => {
     const groupCount = snapshot.numChildren();
-    if (groupCount >= 10) { alert("⚠ Máximo de 10 grupos atingido!"); return; }
+    if (groupCount >= 10) {
+      alert("⚠ Máximo de 10 grupos atingido!");
+      return;
+    }
     const groupName = `PT ${groupCount + 1}`;
-    db.ref("groups/" + groupName).set({ members: ["", "", "", "", ""] });
+    db.ref("groups/" + groupName).set({
+      members: ["", "", "", "", ""] // 5 slots, podem ser vazios
+    });
   });
 }
 
@@ -197,8 +177,8 @@ function loadGroups() {
       closeBtn.style.backgroundColor = "#ff4d4d";
       closeBtn.style.color = "white";
       closeBtn.style.marginLeft = "10px";
-      closeBtn.disabled = !isAdmin;
       closeBtn.onclick = () => {
+        if (!isAdmin) return alert("❌ Ação restrita a ADM.");
         if (confirm(`Encerrar ${groupName}?`)) {
           db.ref("groups/" + groupName).remove();
         }
@@ -207,7 +187,7 @@ function loadGroups() {
       title.appendChild(closeBtn);
       groupBox.appendChild(title);
 
-      // 5 selects
+      // Cria 5 selects, mas podem ficar vazios
       groupData.members.forEach((member, index) => {
         const select = document.createElement("select");
         select.innerHTML = `<option value="">-- vazio --</option>`;
@@ -224,7 +204,8 @@ function loadGroups() {
         });
 
         select.onchange = () => {
-          db.ref("groups/" + groupName + "/members/" + index).set(select.value);
+          if (!isAdmin) return alert("❌ Ação restrita a ADM.");
+          db.ref(`groups/${groupName}/members/${index}`).set(select.value);
         };
 
         groupBox.appendChild(select);
@@ -234,8 +215,35 @@ function loadGroups() {
     });
   });
 }
+loadGroups();
 
-// Atualiza selects dos grupos
+// Atualiza selects quando jogadores mudam
 function updateGroups() {
   loadGroups();
+}
+
+// -------------------- Ações Críticas --------------------
+
+// Exportar lista
+function exportList() {
+  if (!isAdmin) return alert("❌ Ação restrita a ADM.");
+  db.ref("players").get().then(snapshot => {
+    let txt = "";
+    snapshot.forEach(child => {
+      txt += `${child.val().name} - ${child.val().playerClass} - ${child.val().nick}\n`;
+    });
+    const blob = new Blob([txt], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "gvg_lista.txt";
+    a.click();
+  });
+}
+
+// Limpar lista
+function clearList() {
+  if (!isAdmin) return alert("❌ Ação restrita a ADM.");
+  if (confirm("Deseja realmente limpar toda a lista?")) {
+    db.ref("players").remove();
+  }
 }
