@@ -1,147 +1,169 @@
-// Configuração do Firebase
+// Firebase config
 const firebaseConfig = {
-    apiKey: "AIzaSyAH86f5LoSBj63MIR7SzVDGkrLP90Zy6jY",
-    authDomain: "registro-players.firebaseapp.com",
-    databaseURL: "https://registro-players-default-rtdb.firebaseio.com",
-    projectId: "registro-players",
-    storageBucket: "registro-players.appspot.com",
-    messagingSenderId: "156344963881",
-    appId: "1:156344963881:web:79efd9aeade8454d8b5d38",
-    measurementId: "G-7HKNWBDJYT"
+  apiKey: "AIzaSyAH86f5LoSBj63MIR7SzVDGkrLP90Zy6jY",
+  authDomain: "registro-players.firebaseapp.com",
+  databaseURL: "https://registro-players-default-rtdb.firebaseio.com",
+  projectId: "registro-players",
+  storageBucket: "registro-players.appspot.com",
+  messagingSenderId: "156344963881",
+  appId: "1:156344963881:web:79efd9aeade8454d8b5d38",
+  measurementId: "G-7HKNWBDJYT"
 };
 
-// Inicializa Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const auth = firebase.auth();
 
+// Variáveis globais
 let isAdmin = false;
+let grupoCriado = false;
 
 // Elementos DOM
-const adminBtn = document.getElementById('adminBtn');
-const registerBtn = document.getElementById('registerBtn');
-const clearBtn = document.getElementById('clearBtn');
-const exportBtn = document.getElementById('exportBtn');
-const createGroupBtn = document.getElementById('createGroupBtn');
-const playerListDiv = document.getElementById('playerList');
-const groupContainer = document.getElementById('groupContainer');
+const btnAdm = document.getElementById('btnAdm');
+const btnRegistrar = document.getElementById('btnRegistrar');
+const btnExportar = document.getElementById('btnExportar');
+const btnLimpar = document.getElementById('btnLimpar');
+const btnCriarGrupo = document.getElementById('btnCriarGrupo');
+const btnRemoverGrupo = document.getElementById('btnRemoverGrupo');
+const listaUl = document.getElementById('listaJogadores');
 
-// Autenticação ADM persistente
-auth.onAuthStateChanged(user => {
-    if (user && user.email === 'daniel.consultor01@gmail.com') {
-        isAdmin = true;
-        adminBtn.textContent = `ADM: ${user.email}`;
-    } else {
-        isAdmin = false;
-        adminBtn.textContent = 'Login ADM';
+const inputNome = document.getElementById('nome');
+const inputClasse = document.getElementById('classe');
+const inputNick = document.getElementById('nick');
+
+// ----------- Funções -----------
+
+function atualizarLista() {
+  db.ref('players').once('value', snapshot => {
+    listaUl.innerHTML = '';
+    const data = snapshot.val();
+    if(data){
+      Object.keys(data).forEach(key => {
+        const li = document.createElement('li');
+        li.textContent = `${data[key].nome} - ${data[key].classe} - ${data[key].nick}`;
+        if(isAdmin){
+          const btnRemover = document.createElement('button');
+          btnRemover.textContent = "Remover";
+          btnRemover.onclick = () => {
+            if(confirm("Deseja remover este jogador?")){
+              db.ref(`players/${key}`).remove().then(atualizarLista);
+            }
+          }
+          li.appendChild(btnRemover);
+        }
+        listaUl.appendChild(li);
+      });
     }
-});
+  });
+}
 
-// Login ADM
-adminBtn.addEventListener('click', () => {
-    if (!isAdmin) {
-        auth.signInWithEmailAndPassword('daniel.consultor01@gmail.com', 'senhaADM123')
-            .then(() => alert('ADM autenticado'))
-            .catch(err => alert('Erro: ' + err.message));
+// ADM
+btnAdm.onclick = async () => {
+  const email = prompt("Informe o email ADM:");
+  if(email === "daniel.consultor01@gmail.com"){
+    await auth.signInAnonymously(); // sem senha, persistente
+    isAdmin = true;
+    alert("Autenticado como ADM");
+    atualizarLista();
+  } else {
+    alert("Email não autorizado");
+  }
+}
+
+// Registrar jogador
+btnRegistrar.onclick = () => {
+  const nome = inputNome.value.trim();
+  const classe = inputClasse.value.trim();
+  const nick = inputNick.value.trim();
+
+  if(!nome || !classe || !nick){
+    alert("Preencha todos os campos");
+    return;
+  }
+
+  const newKey = db.ref().child('players').push().key;
+  db.ref(`players/${newKey}`).set({nome, classe, nick}).then(() => {
+    inputNome.value = '';
+    inputClasse.value = '';
+    inputNick.value = '';
+    atualizarLista();
+  });
+}
+
+// Exportar lista
+btnExportar.onclick = () => {
+  db.ref('players').once('value', snapshot => {
+    const data = snapshot.val();
+    if(data){
+      const arr = Object.values(data).map(p => `${p.nome} - ${p.classe} - ${p.nick}`);
+      const texto = arr.join('\n');
+      navigator.clipboard.writeText(texto);
+      alert("Lista copiada para a área de transferência");
     } else {
-        alert('ADM já logado');
+      alert("Lista vazia");
     }
-});
+  });
+}
 
-// Registrar jogador (qualquer usuário)
-registerBtn.addEventListener('click', () => {
-    const nome = document.getElementById('nome').value.trim();
-    const classe = document.getElementById('classe').value.trim();
-    const nick = document.getElementById('nick').value.trim();
-    if (!nome || !classe || !nick) return alert('Preencha todos os campos');
+// Limpar lista
+btnLimpar.onclick = () => {
+  if(!isAdmin) return alert("Somente ADM");
+  if(confirm("Deseja limpar toda a lista?")){
+    db.ref('players').remove().then(atualizarLista);
+  }
+}
 
-    const playerRef = db.ref('players').push();
-    playerRef.set({ nome, classe, nick });
-    document.getElementById('nome').value = '';
-    document.getElementById('classe').value = '';
-    document.getElementById('nick').value = '';
-});
+// Criar grupo
+btnCriarGrupo.onclick = () => {
+  if(!isAdmin) return alert("Somente ADM");
+
+  db.ref('players').once('value', snapshot => {
+    const players = snapshot.val();
+    if(!players){
+      alert("Não há jogadores na lista");
+      return;
+    }
+
+    // Criar 5 selects
+    let selectsHTML = '';
+    const playerKeys = Object.keys(players);
+    for(let i=0; i<5; i++){
+      selectsHTML += `<select id="sel${i}">
+        <option value="">--Selecione--</option>
+        ${playerKeys.map(k => `<option value="${k}">${players[k].nick}</option>`).join('')}
+      </select>`;
+    }
+
+    // Mostrar selects no alert temporário
+    const container = document.createElement('div');
+    container.innerHTML = selectsHTML;
+    document.body.appendChild(container);
+
+    grupoCriado = true;
+    btnRemoverGrupo.style.display = "inline-block";
+    alert("Grupo criado. Verifique os selects gerados na página (demo).");
+  });
+}
+
+// Remover grupo
+btnRemoverGrupo.onclick = () => {
+  if(!isAdmin) return alert("Somente ADM");
+  if(confirm("Deseja remover o grupo?")){
+    grupoCriado = false;
+    btnRemoverGrupo.style.display = "none";
+    alert("Grupo removido");
+  }
+}
 
 // Atualizar lista em tempo real
-db.ref('players').on('value', snapshot => {
-    playerListDiv.innerHTML = '';
-    const players = snapshot.val();
-    if (!players) return;
-    Object.keys(players).forEach(key => {
-        const p = players[key];
-        const div = document.createElement('div');
-        div.className = 'player-item';
-        div.textContent = `${p.nome} - ${p.classe} - ${p.nick}`;
+db.ref('players').on('value', atualizarLista);
 
-        // Botão remover jogador (ADM)
-        if (isAdmin) {
-            const removeBtn = document.createElement('button');
-            removeBtn.textContent = '❌';
-            removeBtn.onclick = () => {
-                if (confirm('Remover jogador?')) {
-                    db.ref('players/' + key).remove();
-                }
-            };
-            div.appendChild(removeBtn);
-        }
-
-        playerListDiv.appendChild(div);
-    });
-});
-
-// Limpar lista (ADM)
-clearBtn.addEventListener('click', () => {
-    if (!isAdmin) return alert('Somente ADM pode limpar a lista');
-    if (confirm('Limpar toda a lista?')) {
-        db.ref('players').remove();
-    }
-});
-
-// Exportar lista (ADM)
-exportBtn.addEventListener('click', () => {
-    if (!isAdmin) return alert('Somente ADM pode exportar a lista');
-    db.ref('players').once('value').then(snapshot => {
-        const players = snapshot.val();
-        if (!players) return alert('Lista vazia');
-        const exportData = Object.values(players).map(p => `${p.nome} - ${p.classe} - ${p.nick}`).join('\n');
-        alert('Export:\n' + exportData);
-    });
-});
-
-// Criar grupo (ADM)
-createGroupBtn.addEventListener('click', () => {
-    if (!isAdmin) return alert('Somente ADM pode criar grupos');
-    db.ref('players').once('value').then(snapshot => {
-        const players = snapshot.val();
-        if (!players) return alert('Não há jogadores na lista');
-
-        groupContainer.innerHTML = '';
-        const playerArray = Object.values(players);
-
-        for (let i = 0; i < 5; i++) {
-            const select = document.createElement('select');
-            select.className = 'group-select';
-            const emptyOption = document.createElement('option');
-            emptyOption.value = '';
-            emptyOption.textContent = '--';
-            select.appendChild(emptyOption);
-
-            playerArray.forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p.nick;
-                opt.textContent = p.nick;
-                select.appendChild(opt);
-            });
-
-            groupContainer.appendChild(select);
-        }
-
-        // Botão remover grupo
-        const removeGroupBtn = document.createElement('button');
-        removeGroupBtn.textContent = 'Remover Grupo';
-        removeGroupBtn.onclick = () => {
-            if (confirm('Remover grupo?')) groupContainer.innerHTML = '';
-        };
-        groupContainer.appendChild(removeGroupBtn);
-    });
+// Persistência ADM
+auth.onAuthStateChanged(user => {
+  if(user){
+    isAdmin = true;
+    atualizarLista();
+  } else {
+    isAdmin = false;
+  }
 });

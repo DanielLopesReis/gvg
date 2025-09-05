@@ -1,77 +1,76 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>Registro de Players</title>
-    <style>
-        body {
-            background-color: #000;
-            color: #fff;
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            min-height: 100vh;
-            padding-top: 30px;
-        }
-        input, select, button {
-            margin: 5px;
-            padding: 8px;
-            border-radius: 5px;
-            border: none;
-        }
-        input, select {
-            width: 150px;
-        }
-        button {
-            background-color: red;
-            color: white;
-            cursor: pointer;
-        }
-        button:disabled {
-            background-color: grey;
-            cursor: not-allowed;
-        }
-        #playerList {
-            margin-top: 20px;
-            width: 500px;
-        }
-        .player-item {
-            margin: 5px 0;
-        }
-        .group-container {
-            margin-top: 20px;
-        }
-        .group-select {
-            margin: 3px;
-            width: 120px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro de Jogadores</title>
+<style>
+  body {
+    background-color: #000;
+    color: #fff;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 50px;
+  }
+  .container {
+    text-align: center;
+    width: 600px;
+  }
+  input, select, button {
+    margin: 5px;
+    padding: 8px;
+    font-size: 16px;
+  }
+  input {
+    width: 150px;
+  }
+  select {
+    width: 120px;
+  }
+  button {
+    background-color: red;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  button:hover {
+    opacity: 0.8;
+  }
+  ul {
+    text-align: left;
+    margin-top: 20px;
+    list-style-type: none;
+    padding-left: 0;
+  }
+  li {
+    margin: 5px 0;
+  }
+</style>
 </head>
 <body>
+<div class="container">
+  <h1>Registro de Jogadores</h1>
+  <button id="btnAdm">ADM</button><br>
+  
+  <input type="text" id="nome" placeholder="Nome">
+  <input type="text" id="classe" placeholder="Classe">
+  <input type="text" id="nick" placeholder="Nick"><br>
 
-    <button id="adminBtn">Login ADM</button>
+  <button id="btnRegistrar">Registrar Jogador</button>
+  <button id="btnExportar">Exportar Lista</button>
+  <button id="btnLimpar">Limpar Lista</button><br>
 
-    <div id="registration">
-        <input type="text" id="nome" placeholder="Nome">
-        <input type="text" id="classe" placeholder="Classe">
-        <input type="text" id="nick" placeholder="Nick">
-        <button id="registerBtn">Registrar Jogador</button>
-        <button id="exportBtn">Exportar Lista</button>
-        <button id="clearBtn">Limpar Lista</button>
-    </div>
+  <button id="btnCriarGrupo">Criar Grupo</button>
+  <button id="btnRemoverGrupo" style="display:none;">Remover Grupo</button>
 
-    <div id="playerList"></div>
+  <ul id="listaJogadores"></ul>
+</div>
 
-    <div class="group-container">
-        <button id="createGroupBtn">Criar Grupo</button>
-        <div id="groupContainer"></div>
-    </div>
-
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="script.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
