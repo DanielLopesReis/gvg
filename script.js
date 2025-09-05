@@ -68,12 +68,14 @@ function loadPlayers() {
 
       const p = document.createElement("div");
       p.className = "playerItem";
-      p.innerHTML = `${player.name} - ${player.playerClass} - ${player.nick}`;
+      p.textContent = `${player.name} - ${player.playerClass} - ${player.nick}`;
 
-      // Botão remover
+      // Botão remover com emoji ❌
       const removeBtn = document.createElement("button");
-      removeBtn.textContent = "❌";
+      removeBtn.textContent = "\u274C"; // ❌ Unicode
       removeBtn.className = "removeBtn";
+      removeBtn.style.fontSize = "16px";
+      removeBtn.style.lineHeight = "1";
       removeBtn.onclick = () => removePlayer(player.nick);
 
       p.appendChild(removeBtn);
@@ -109,7 +111,7 @@ function loadPlayers() {
     totalBox.textContent = `Total: ${totalPlayers}`;
     summaryDiv.appendChild(totalBox);
 
-    updateGroups(); // atualiza selects dos grupos
+    updateGroups();
   });
 }
 loadPlayers();
@@ -137,6 +139,8 @@ function createGroup() {
       const groupName = `PT ${groupCount + 1}`;
       db.ref("groups/" + groupName).set({
         members: ["", "", "", "", ""]
+      }).then(() => {
+        loadGroups(); // força renderização imediata
       });
     });
   });
@@ -193,7 +197,7 @@ function loadGroups() {
         });
 
         select.onchange = () => {
-          db.ref("groups/" + groupName + "/members/" + index).set(select.value);
+          db.ref(`groups/${groupName}/members/${index}`).set(select.value);
         };
 
         groupBox.appendChild(select);
@@ -205,7 +209,7 @@ function loadGroups() {
 }
 loadGroups();
 
-// Atualiza selects dos grupos quando jogadores mudam
+// Atualiza selects dos grupos
 function updateGroups() {
   loadGroups();
 }
