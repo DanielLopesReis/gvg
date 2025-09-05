@@ -12,12 +12,13 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// Email autorizado
+// Email autorizado para ações de administração
 const ADMIN_EMAILS = ["daniel.consultor01@gmail.com"];
-let isAdmin = false;
 
 // Siglas permitidas
 const ALLOWED_CLASSES = ["BK", "MG", "DL", "SM", "ELF"];
+
+let isAdmin = false;
 
 // -------------------- Jogadores --------------------
 function addPlayer() {
@@ -53,6 +54,7 @@ function loadPlayers() {
   db.ref("players").on("value", snapshot => {
     const listDiv = document.getElementById("playerList");
     const summaryDiv = document.getElementById("playerSummary");
+
     listDiv.innerHTML = "";
     summaryDiv.innerHTML = "";
 
@@ -62,16 +64,20 @@ function loadPlayers() {
 
     snapshot.forEach(child => {
       const player = child.val();
-      const p = document.createElement("div");
-      p.innerHTML = `${player.name} - ${player.playerClass} - ${player.nick}`;
 
-      // Botão remover
+      const p = document.createElement("div");
+      p.className = "playerItem";
+      p.innerHTML = `<span>${player.name} - ${player.playerClass} - ${player.nick}</span>`;
+
       const removeBtn = document.createElement("button");
-      removeBtn.className = "removeBtn";
       removeBtn.innerHTML = "❌";
+      removeBtn.className = "removeBtn";
       removeBtn.onclick = () => {
-        if (!isAdmin) { alert("Acesso negado!"); return; }
-        if (confirm(`Remover jogador ${player.nick}?`)) db.ref("players/" + player.nick).remove();
+        promptLogin(() => {
+          if (confirm(`Remover jogador ${player.nick}?`)) {
+            db.ref("players/" + player.nick).remove();
+          }
+        });
       };
 
       p.appendChild(removeBtn);
@@ -83,33 +89,47 @@ function loadPlayers() {
       }
     });
 
-    // Contagem por classe
     ALLOWED_CLASSES.forEach(cls => {
       const box = document.createElement("div");
+      box.style.display = "inline-block";
+      box.style.margin = "5px";
+      box.style.padding = "10px";
+      box.style.backgroundColor = "#4e4e4e";
+      box.style.borderRadius = "4px";
+      box.style.fontWeight = "bold";
       box.textContent = `${cls}: ${classCount[cls]}`;
       summaryDiv.appendChild(box);
     });
 
     const totalBox = document.createElement("div");
-    totalBox.id = "totalBox";
+    totalBox.style.display = "inline-block";
+    totalBox.style.margin = "5px";
+    totalBox.style.padding = "10px";
+    totalBox.style.backgroundColor = "#6e6e6e";
+    totalBox.style.borderRadius = "4px";
+    totalBox.style.fontWeight = "bold";
     totalBox.textContent = `Total: ${totalPlayers}`;
     summaryDiv.appendChild(totalBox);
 
-    loadGroups(); // Atualiza grupos
+    updateGroups();
   });
 }
 loadPlayers();
 
 // -------------------- Grupos --------------------
 function createGroup() {
-  if (!isAdmin) { alert("Acesso negado!"); return; }
-
-  db.ref("groups").once("value").then(snapshot => {
-    const groupCount = snapshot.numChildren();
-    if (groupCount >= 10) { alert("⚠ Máximo de 10 grupos atingido!"); return; }
-
-    const groupName = `PT ${groupCount + 1}`;
-    db.ref("groups/" + groupName).set({ members: ["", "", "", "", ""] }).then(loadGroups);
+  promptLogin(() => {
+    db.ref("groups").once("value").then(snapshot => {
+      const groupCount = snapshot.numChildren();
+      if (groupCount >= 10) {
+        alert("⚠ Máximo de 10 grupos atingido!");
+        return;
+      }
+      const groupName = `PT ${groupCount + 1}`;
+      db.ref("groups/" + groupName).set({
+        members: ["", "", "", "", ""]
+      });
+    });
   });
 }
 
@@ -121,6 +141,7 @@ function loadGroups() {
     snapshot.forEach(child => {
       const groupName = child.key;
       const groupData = child.val();
+
       const groupBox = document.createElement("div");
       groupBox.className = "groupBox";
 
@@ -132,10 +153,12 @@ function loadGroups() {
       closeBtn.textContent = "Encerrar Grupo";
       closeBtn.style.backgroundColor = "#ff4d4d";
       closeBtn.style.color = "white";
-      closeBtn.style.marginLeft = "10px";
       closeBtn.onclick = () => {
-        if (!isAdmin) { alert("Acesso negado!"); return; }
-        if (confirm(`Encerrar ${groupName}?`)) db.ref("groups/" + groupName).remove();
+        promptLogin(() => {
+          if (confirm(`Encerrar ${groupName}?`)) {
+            db.ref("groups/" + groupName).remove();
+          }
+        });
       };
 
       title.appendChild(closeBtn);
@@ -156,7 +179,10 @@ function loadGroups() {
           });
         });
 
-        select.onchange = () => db.ref(`groups/${groupName}/members/${index}`).set(select.value);
+        select.onchange = () => {
+          db.ref("groups/" + groupName + "/members/" + index).set(select.value);
+        };
+
         groupBox.appendChild(select);
       });
 
@@ -164,34 +190,45 @@ function loadGroups() {
     });
   });
 }
+loadGroups();
+function updateGroups() { loadGroups(); }
 
 // -------------------- Admin --------------------
-document.getElementById("admBtn").onclick = () => {
-  const email = prompt("Digite seu email autorizado:");
-  if (ADMIN_EMAILS.includes(email)) { 
-    isAdmin = true; 
-    alert("✅ Acesso administrativo liberado!"); 
-  } else { 
-    alert("❌ Email não autorizado!"); 
-  }
-};
-
-document.getElementById("createGroupBtn").onclick = createGroup;
-
 document.getElementById("exportBtn").onclick = () => {
-  if (!isAdmin) { alert("Acesso negado!"); return; }
-  db.ref("players").get().then(snapshot => {
-    let txt = "";
-    snapshot.forEach(child => { txt += `${child.val().name} - ${child.val().playerClass} - ${child.val().nick}\n`; });
-    const blob = new Blob([txt], { type: "text/plain" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "gvg_lista.txt";
-    a.click();
+  promptLogin(() => {
+    db.ref("players").get().then(snapshot => {
+      let txt = "";
+      snapshot.forEach(child => {
+        txt += `${child.val().name} - ${child.val().playerClass} - ${child.val().nick}\n`;
+      });
+      const blob = new Blob([txt], { type: "text/plain" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "gvg_lista.txt";
+      a.click();
+    });
   });
 };
 
 document.getElementById("clearBtn").onclick = () => {
-  if (!isAdmin) { alert("Acesso negado!"); return; }
-  if (confirm("Deseja realmente limpar toda a lista?")) db.ref("players").remove();
+  promptLogin(() => {
+    if (confirm("Deseja realmente limpar toda a lista?")) {
+      db.ref("players").remove();
+    }
+  });
 };
+
+// Função de autenticação
+function promptLogin(callback) {
+  if (isAdmin) { callback(); return; }  // já logado
+  const email = prompt("Digite seu email autorizado:");
+  if (!ADMIN_EMAILS.includes(email)) {
+    alert("❌ Email não autorizado!");
+    return;
+  }
+  isAdmin = true;
+  callback();
+}
+
+// Associar botão Criar Grupo
+document.getElementById("createGroupBtn").onclick = createGroup;
