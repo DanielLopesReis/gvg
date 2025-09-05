@@ -1,80 +1,40 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <title>ExilliuM</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        body {
-            background-color: black;
-            color: white;
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-        h1 { color: red; font-size: 36px; }
-        h2 { color: red; font-size: 24px; }
-        input, select, button {
-            margin: 5px;
-            padding: 8px;
-            border-radius: 5px;
-            border: 1px solid red;
-        }
-        button {
-            background-color: red;
-            color: white;
-            cursor: pointer;
-        }
-        #playerList {
-            margin-top: 15px;
-            border-top: 1px solid red;
-            padding-top: 10px;
-        }
-        .player-item {
-            margin: 5px 0;
-        }
-        #groupContainer {
-            margin-top: 20px;
-        }
-        select.group-select {
-            margin: 3px;
-        }
-    </style>
-</head>
-<body>
-    <h1>ExilliuM</h1>
-    <h2>Eventos PvP - Registro de jogadores</h2>
-
-    <div id="authContainer">
-        <button id="admLoginBtn">ADM</button>
-    </div>
-
-    <div id="registerContainer">
-        <input type="text" id="name" placeholder="Nome">
-        <select id="classe">
-            <option value="">Classe</option>
-            <option value="BK">BK</option>
-            <option value="MG">MG</option>
-            <option value="DL">DL</option>
-            <option value="SM">SM</option>
-            <option value="ELF">ELF</option>
-        </select>
-        <input type="text" id="nick" placeholder="Nick">
-        <br>
-        <button id="registerBtn">Registrar Jogador</button>
-        <button id="exportBtn">Exportar Lista</button>
-        <button id="clearBtn">Limpar Lista</button>
-    </div>
-
-    <div id="playerList"></div>
-
-    <div id="groupContainer">
-        <button id="createGroupBtn">Criar Grupo</button>
-        <div id="groupList"></div>
-    </div>
-
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>ExilliuM</h1>
+        <h2>Eventos PvP - Registro de jogadores</h2>
+
+        <button id="admBtn" class="red-btn">ADM</button>
+
+        <div class="registro">
+            <input type="text" id="nome" placeholder="Nome">
+            <input type="text" id="classe" placeholder="Classe (BK, MG, DL, SM, ELF)">
+            <input type="text" id="nick" placeholder="Nick">
+        </div>
+        <div class="acoes">
+            <button id="registrarBtn" class="red-btn">Registrar Jogador</button>
+            <button id="exportBtn" class="red-btn">Exportar Lista</button>
+            <button id="limparBtn" class="red-btn">Limpar Lista</button>
+        </div>
+
+        <div id="listaContainer" class="lista"></div>
+        <hr class="separador">
+
+        <div class="grupo">
+            <button id="criarGrupoBtn" class="red-btn">Criar Grupo</button>
+            <div id="grupoContainer"></div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
