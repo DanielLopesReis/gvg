@@ -71,33 +71,44 @@
             font-weight: bold;
             margin-bottom: 10px;
         }
-        .centerContent {
+        .input-row {
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .button-row {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
+
     <h1>ExilliuM</h1>
     <h2>Eventos PVP - Registro de jogadores</h2>
 
-    <div class="centerContent">
+    <button onclick="admLogin()">ADM</button>
+
+    <div class="input-row">
         <input type="text" id="name" placeholder="Nome">
         <input type="text" id="class" placeholder="Classe (BK, MG, DL, SM, ELF)">
         <input type="text" id="nick" placeholder="Nick">
-        <br>
+    </div>
+
+    <div class="button-row">
         <button onclick="addPlayer()">Registrar jogador</button>
-        <button id="exportBtn" onclick="exportList()">Exportar lista</button>
-        <button id="clearBtn" onclick="clearList()">Limpar lista</button>
-        <button id="authBtn" onclick="authADM()">ADM</button>
+        <button onclick="exportList()">Exportar lista</button>
+        <button onclick="clearList()">Limpar lista</button>
     </div>
 
     <div id="playerList"></div>
     <div id="playerSummary"></div>
 
     <h2>Grupos</h2>
-    <button id="createGroupBtn" onclick="createGroup()">Criar Grupo</button>
+    <button onclick="createGroup()">Criar Grupo</button>
     <div id="groups"></div>
 
     <!-- Firebase SDK -->
@@ -105,7 +116,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
-    <!-- Script principal -->
     <script src="script.js"></script>
+
 </body>
 </html>
