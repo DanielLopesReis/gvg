@@ -1,70 +1,146 @@
+/* Layout geral */
 body {
-  background-color: #000;
-  color: #fff;
   font-family: Arial, sans-serif;
-  display: flex;
-  justify-content: center;
+  background-color: #1e1e1e;
+  color: #fff;
+  margin: 0;
   padding: 20px;
 }
 
-.container {
-  width: 600px;
+.wrap {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
 }
 
+/* Títulos */
 h1 {
-  text-align: center;
   color: red;
+  margin-bottom: 10px;
 }
 
-.subtitle {
-  color: #fff;
-  text-align: center;
+h2 {
+  color: #ffffff;
+  margin: 20px 0;
 }
 
-button {
-  background-color: red;
+/* Inputs e selects */
+.inputs {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.inputs input,
+.inputs select {
+  padding: 8px;
+  border-radius: 6px;             /* levemente arredondado */
   border: none;
+  background: rgba(128,128,128,0.25); /* cinza sutil e sem borda */
   color: #fff;
-  padding: 10px 20px;
+  min-width: 180px;
+}
+
+/* Botões */
+.btn {
+  padding: 6px 12px;              /* menores */
   margin: 5px;
-  cursor: pointer;
-  border-radius: 0;
-}
-
-button:hover {
-  opacity: 0.8;
-}
-
-.registro input, .registro select {
-  padding: 5px;
-  margin: 5px 2px;
-  border-radius: 0;
   border: none;
-  background-color: rgba(128,128,128,0.3);
+  border-radius: 6px;             /* levemente arredondado */
+  background-color: red;
   color: #fff;
+  cursor: pointer;
 }
 
-#listaJogadores .jogador {
-  background-color: rgba(128,128,128,0.3);
-  color: #fff;
-  padding: 5px;
-  margin: 3px 0;
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.actions {
+  margin-top: 6px;
+  margin-bottom: 12px;
+}
+
+/* Lista de jogadores */
+.list {
+  margin-top: 10px;
+  text-align: left;
+}
+
+.playerItem {
+  background: rgba(128,128,128,0.25);  /* cinza sutil */
+  color: #fff;                         /* texto branco */
+  margin: 6px 0;
+  padding: 10px;
+  border-radius: 6px;                  /* sem pontas */
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-#gruposCriados .grupo {
-  background-color: rgba(128,128,128,0.3);
+/* botão remover na lista (só ADM mostra) */
+.removeBtn {
+  background-color: #ff4d4d;
   color: #fff;
-  padding: 5px;
-  margin: 3px 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  border: none;
+  border-radius: 6px;                  /* levemente arredondado */
+  padding: 4px 8px;
+  font-size: 14px;
+  cursor: pointer;
 }
 
-.separator {
-  border: 1px solid rgba(255,255,255,0.2);
+/* Separador vermelho abaixo da lista */
+.red-sep {
+  border: 0;
+  border-top: 2px solid red;
+  margin: 14px 0 10px 0;
+}
+
+/* Grupos */
+.groups {
+  text-align: left;
+}
+
+.groupBox {
+  background: rgba(128,128,128,0.25);
+  border-radius: 6px;
+  padding: 10px;
   margin: 10px 0;
 }
+
+.groupTitle {
+  font-weight: bold;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.groupTitle .closeGroupBtn {
+  background: #ff4d4d;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.groupRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.groupRow select {
+  flex: 1;
+  min-width: 140px;
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(128,128,128,0.25);
+  color: #fff;
+}
+

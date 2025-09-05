@@ -1,45 +1,49 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>ExilliuM - Eventos PvP</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ExilliuM - Eventos PVP</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <div class="container">
+  <div class="wrap">
     <h1>ExilliuM</h1>
-    <h2 class="subtitle">Eventos PvP - Registro de jogadores</h2>
+    <h2>Eventos PvP - Registro de jogadores</h2>
 
-    <button id="admBtn">ADM</button>
+    <button id="admBtn" class="btn">ADM</button>
 
-    <div class="registro">
-      <input type="text" id="nome" placeholder="Nome">
+    <div class="inputs">
+      <input type="text" id="nome" placeholder="Nome"/>
       <select id="classe">
-        <option value="">Classe</option>
+        <option value="" disabled selected>Classe (BK, MG, DL, SM, ELF)</option>
         <option value="BK">BK</option>
         <option value="MG">MG</option>
         <option value="DL">DL</option>
         <option value="SM">SM</option>
         <option value="ELF">ELF</option>
       </select>
-      <input type="text" id="nick" placeholder="Nick">
+      <input type="text" id="nick" placeholder="Nick"/>
     </div>
 
-    <div class="acoes">
-      <button id="registrarBtn">Registrar jogador</button>
-      <button id="exportarBtn">Exportar lista</button>
-      <button id="limparBtn">Limpar lista</button>
-      <button id="criarGrupoBtn">Criar grupo</button>
+    <div class="actions">
+      <button id="registrarBtn" class="btn">Registrar jogador</button>
+      <button id="exportarBtn" class="btn btn-adm" hidden>Exportar lista</button>
+      <button id="limparBtn" class="btn btn-adm" hidden>Limpar lista</button>
+      <button id="criarGrupoBtn" class="btn btn-adm" hidden>Criar Grupo</button>
     </div>
 
-    <div id="listaJogadores"></div>
-    <hr class="separator">
-    <div id="gruposCriados"></div>
+    <div id="listaJogadores" class="list"></div>
+    <hr class="red-sep"/>
+
+    <h2>Grupos</h2>
+    <div id="grupos" class="groups"></div>
   </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="script.js"></script>
+  <!-- Firebase SDKs compat -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <script src="script.js"></script>
 </body>
 </html>
