@@ -1,40 +1,46 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>ExilliuM - Eventos PvP</title>
-<link rel="stylesheet" href="style.css">
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="script.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExilliuM - Eventos PVP</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1 id="titulo">ExilliuM</h1>
-  <h2 id="subtitulo">Eventos PvP - Registro de jogadores</h2>
 
-  <button id="btnAdm">ADM</button>
+    <h1>ExilliuM</h1>
+    <h2 style="color:white;">Eventos PVP - Registro de jogadores</h2>
 
-  <div class="form-group">
-    <input type="text" id="nome" placeholder="Nome">
-    <select id="classe">
-      <option value="">Classe</option>
-      <option value="BK">BK</option>
-      <option value="MG">MG</option>
-      <option value="DL">DL</option>
-      <option value="SM">SM</option>
-      <option value="ELF">ELF</option>
+    <button id="admLoginBtn">Login ADM</button>
+    <br><br>
+
+    <input type="text" id="name" placeholder="Nome">
+    <select id="class">
+        <option value="">Classe</option>
+        <option value="BK">BK</option>
+        <option value="MG">MG</option>
+        <option value="DL">DL</option>
+        <option value="SM">SM</option>
+        <option value="ELF">ELF</option>
     </select>
     <input type="text" id="nick" placeholder="Nick">
-  </div>
+    <br>
+    <button onclick="addPlayer()">Registrar jogador</button>
+    <button onclick="exportList()">Exportar lista</button>
+    <button onclick="clearList()">Limpar lista</button>
 
-  <button id="registrar">Registrar Jogador</button>
-  <button id="exportar">Exportar Lista</button>
-  <button id="limparLista">Limpar Lista</button>
+    <div id="playerList"></div>
+    <hr style="border:1px solid red; margin:20px 0;">
+    
+    <h2 style="color:white;">Grupos</h2>
+    <button onclick="createGroup()">Criar Grupo</button>
+    <div id="groups"></div>
 
-  <div id="listaJogadores"></div>
-  <hr class="linhaSeparadora">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <script src="script.js"></script>
 
-  <button id="criarGrupo">Criar Grupo</button>
-  <div id="gruposContainer" class="gruposContainer"></div>
 </body>
 </html>
