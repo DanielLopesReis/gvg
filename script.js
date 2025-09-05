@@ -157,6 +157,11 @@ function loadGroups(){
 
 // ---------------- Exportar / Limpar ----------------
 function exportList(){
+    // Verifica se o usuário é ADM antes de exportar a lista
+    if(!isAdmin){
+        alert("Apenas ADM pode exportar!");
+        return;
+    }
     db.ref("players").get().then(snapshot=>{
         let txt = "";
         snapshot.forEach(child=>{
