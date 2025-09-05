@@ -1,49 +1,106 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Eventos PVP - ExilliuM</title>
-  <style>
-    body { background-color: #1e1e1e; color: white; font-family: Arial, sans-serif; padding: 20px; }
-    input, select, button { margin: 5px; padding: 5px; }
-    .playerItem { margin: 5px 0; display: flex; align-items: center; justify-content: space-between; }
-    .removeBtn { cursor: pointer; background-color: transparent; border: none; font-size: 16px; }
-    .groupBox { border: 1px solid #4e4e4e; margin: 10px 0; padding: 10px; border-radius: 4px; }
-    .groupTitle { font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; }
-    .groupTitle button { margin-left: auto; padding: 2px 6px; cursor: pointer; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExilliuM - Eventos PVP</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            color: red;
+            margin-bottom: 10px;
+        }
+        h2 {
+            color: #fff;
+            margin-bottom: 20px;
+        }
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border-radius: 4px;
+            border: none;
+        }
+        button {
+            padding: 6px 12px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            background-color: red;
+            color: black;
+            cursor: pointer;
+        }
+        #playerList, #playerSummary, #groups {
+            margin-top: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: left;
+        }
+        .playerItem {
+            background-color: #2e2e2e;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .removeBtn {
+            background-color: #ff4d4d;
+            color: white;
+            font-size: 12px;
+            padding: 3px 6px;
+        }
+        #playerSummary {
+            margin-top: 15px;
+            padding: 10px;
+        }
+        .groupBox {
+            background-color: #2e2e2e;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .groupTitle {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
 
-  <h1>Eventos PVP</h1>
+    <h1>ExilliuM</h1>
+    <h2>Eventos PVP - Registro de jogadores</h2>
 
-  <div>
-    <input id="name" placeholder="Nome">
-    <input id="class" placeholder="Classe (sigla)">
-    <input id="nick" placeholder="Nick">
-    <button onclick="addPlayer()">Cadastrar Jogador</button>
-    <button id="adminBtn" onclick="adminLogin()">ADM ></button>
-  </div>
+    <input type="text" id="name" placeholder="Nome">
+    <input type="text" id="class" placeholder="Classe (BK, MG, DL, SM, ELF)">
+    <input type="text" id="nick" placeholder="Nick">
+    <br>
+    <button onclick="addPlayer()">Registrar jogador</button>
+    <button id="exportBtn" onclick="exportList()" disabled>Exportar lista</button>
+    <button id="clearBtn" onclick="clearList()" disabled>Limpar lista</button>
+    <button id="createGroupBtn" onclick="createGroup()" disabled>Criar Grupo</button>
+    <button id="adminBtn" onclick="authenticateAdmin()">ADM</button>
 
-  <div style="margin-top: 10px;">
-    <button id="clearList" onclick="clearList()" disabled>Limpar lista</button>
-    <button id="exportList" onclick="exportList()" disabled>Exportar lista</button>
-    <button id="createGroup" onclick="createGroup()" disabled>Criar Grupo</button>
-  </div>
+    <div id="playerList"></div>
+    <div id="playerSummary"></div>
 
-  <h2>Lista de Jogadores</h2>
-  <div id="playerList"></div>
+    <h2>Grupos</h2>
+    <div id="groups"></div>
 
-  <h2>Resumo</h2>
-  <div id="playerSummary"></div>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
-  <h2>Grupos</h2>
-  <div id="groups"></div>
+    <!-- Script principal -->
+    <script src="script.js"></script>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-  <script src="script.js"></script>
 </body>
 </html>

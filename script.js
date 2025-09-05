@@ -12,12 +12,14 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// Email autorizado para administração
+// Email autorizado para ações de administração
 const ADMIN_EMAILS = ["daniel.consultor01@gmail.com"];
-let isAdmin = false;
 
 // Siglas permitidas
 const ALLOWED_CLASSES = ["BK", "MG", "DL", "SM", "ELF"];
+
+// Estado de autenticação
+let isAdmin = false;
 
 // -------------------- Jogadores --------------------
 
@@ -69,14 +71,13 @@ function loadPlayers() {
 
       const p = document.createElement("div");
       p.className = "playerItem";
-      p.textContent = `${player.name} - ${player.playerClass} - ${player.nick}`;
+      p.innerHTML = `${player.name} - ${player.playerClass} - ${player.nick}`;
 
       // Botão remover
       const removeBtn = document.createElement("button");
+      removeBtn.textContent = "❌"; // emoji X
       removeBtn.className = "removeBtn";
-      removeBtn.innerHTML = "\u274C"; // ❌ Unicode
-      removeBtn.style.fontFamily = "Segoe UI Emoji, Arial, sans-serif";
-      removeBtn.style.fontSize = "16px";
+      removeBtn.disabled = !isAdmin; // só habilita se admin
       removeBtn.onclick = () => removePlayer(player.nick);
 
       p.appendChild(removeBtn);
@@ -112,17 +113,14 @@ function loadPlayers() {
     totalBox.textContent = `Total: ${totalPlayers}`;
     summaryDiv.appendChild(totalBox);
 
-    updateGroups();
+    updateGroups(); // atualiza selects dos grupos
   });
 }
 loadPlayers();
 
-// Remover jogador
+// Remover jogador com autenticação
 function removePlayer(nick) {
-  if (!isAdmin) {
-    alert("❌ Apenas administradores podem remover jogadores!");
-    return;
-  }
+  if (!isAdmin) return;
   if (confirm(`Remover jogador ${nick}?`)) {
     db.ref("players/" + nick).remove();
   }
@@ -130,11 +128,9 @@ function removePlayer(nick) {
 
 // -------------------- Grupos --------------------
 
+// Cria um novo grupo
 function createGroup() {
-  if (!isAdmin) {
-    alert("❌ Apenas administradores podem criar grupos!");
-    return;
-  }
+  if (!isAdmin) return;
 
   db.ref("groups").once("value").then(snapshot => {
     const groupCount = snapshot.numChildren();
@@ -143,7 +139,9 @@ function createGroup() {
       return;
     }
     const groupName = `PT ${groupCount + 1}`;
-    db.ref("groups/" + groupName).set({ members: ["", "", "", "", ""] });
+    db.ref("groups/" + groupName).set({
+      members: ["", "", "", "", ""]
+    });
   });
 }
 
@@ -169,11 +167,10 @@ function loadGroups() {
       closeBtn.textContent = "Encerrar Grupo";
       closeBtn.style.backgroundColor = "#ff4d4d";
       closeBtn.style.color = "white";
+      closeBtn.style.marginLeft = "10px";
+      closeBtn.disabled = !isAdmin;
       closeBtn.onclick = () => {
-        if (!isAdmin) {
-          alert("❌ Apenas administradores podem encerrar grupos!");
-          return;
-        }
+        if (!isAdmin) return;
         if (confirm(`Encerrar ${groupName}?`)) {
           db.ref("groups/" + groupName).remove();
         }
@@ -198,12 +195,10 @@ function loadGroups() {
           });
         });
 
+        select.disabled = !isAdmin;
+
         select.onchange = () => {
-          if (!isAdmin) {
-            alert("❌ Apenas administradores podem alterar membros!");
-            loadGroups(); // reverte
-            return;
-          }
+          if (!isAdmin) return;
           db.ref("groups/" + groupName + "/members/" + index).set(select.value);
         };
 
@@ -216,38 +211,16 @@ function loadGroups() {
 }
 loadGroups();
 
+// Atualiza selects dos grupos quando jogadores mudam
 function updateGroups() {
   loadGroups();
 }
 
 // -------------------- Admin --------------------
 
-function adminLogin() {
-  const email = prompt("Digite seu email autorizado:");
-  if (!email) {
-    alert("Email não informado!");
-    return;
-  }
-  if (!ADMIN_EMAILS.includes(email)) {
-    alert("❌ Email não autorizado!");
-    return;
-  }
-
-  isAdmin = true;
-  alert("✅ Acesso administrativo liberado!");
-  enableAdminButtons();
-}
-
-function enableAdminButtons() {
-  ["clearList", "exportList", "createGroup"].forEach(id => {
-    const btn = document.getElementById(id);
-    if (btn) btn.disabled = !isAdmin;
-  });
-}
-
-// Exportar lista
+// Exportar lista para txt
 function exportList() {
-  if (!isAdmin) return alert("❌ Apenas administradores podem exportar lista!");
+  if (!isAdmin) return;
 
   db.ref("players").get().then(snapshot => {
     let txt = "";
@@ -264,9 +237,25 @@ function exportList() {
 
 // Limpar lista
 function clearList() {
-  if (!isAdmin) return alert("❌ Apenas administradores podem limpar lista!");
+  if (!isAdmin) return;
 
   if (confirm("Deseja realmente limpar toda a lista?")) {
     db.ref("players").remove();
   }
+}
+
+// -------------------- Autenticação --------------------
+
+function authenticateAdmin() {
+  const email = prompt("Digite seu email autorizado:");
+  if (!ADMIN_EMAILS.includes(email)) {
+    alert("❌ Email não autorizado!");
+    return;
+  }
+  isAdmin = true;
+  alert("✅ Autenticação concluída! Acesso administrativo liberado.");
+  document.getElementById("exportBtn").disabled = false;
+  document.getElementById("clearBtn").disabled = false;
+  document.getElementById("createGroupBtn").disabled = false;
+  loadPlayers(); // Atualiza botões de remover
 }
