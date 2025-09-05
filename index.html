@@ -71,18 +71,6 @@
             font-weight: bold;
             margin-bottom: 10px;
         }
-        .input-row {
-            display: flex;
-            justify-content: center;
-            gap: 5px;
-            margin-bottom: 10px;
-        }
-        .button-row {
-            display: flex;
-            justify-content: center;
-            gap: 5px;
-            margin-bottom: 10px;
-        }
     </style>
 </head>
 <body>
@@ -90,19 +78,15 @@
     <h1>ExilliuM</h1>
     <h2>Eventos PVP - Registro de jogadores</h2>
 
-    <button onclick="admLogin()">ADM</button>
+    <button onclick="admLogin()">ADM</button><br>
 
-    <div class="input-row">
-        <input type="text" id="name" placeholder="Nome">
-        <input type="text" id="class" placeholder="Classe (BK, MG, DL, SM, ELF)">
-        <input type="text" id="nick" placeholder="Nick">
-    </div>
-
-    <div class="button-row">
-        <button onclick="addPlayer()">Registrar jogador</button>
-        <button onclick="exportList()">Exportar lista</button>
-        <button onclick="clearList()">Limpar lista</button>
-    </div>
+    <input type="text" id="name" placeholder="Nome">
+    <input type="text" id="class" placeholder="Classe (BK, MG, DL, SM, ELF)">
+    <input type="text" id="nick" placeholder="Nick">
+    <br>
+    <button onclick="addPlayer()">Registrar jogador</button>
+    <button onclick="exportList()">Exportar lista</button>
+    <button onclick="clearList()">Limpar lista</button>
 
     <div id="playerList"></div>
     <div id="playerSummary"></div>
@@ -116,6 +100,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
+    <!-- Script principal -->
     <script src="script.js"></script>
 
 </body>
