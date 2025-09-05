@@ -18,7 +18,7 @@ const ADMIN_EMAILS = ["daniel.consultor01@gmail.com"];
 // Siglas permitidas
 const ALLOWED_CLASSES = ["BK", "MG", "DL", "SM", "ELF"];
 
-// Estado de autenticação
+// Variável de controle de autenticação
 let isAdmin = false;
 
 // -------------------- Jogadores --------------------
@@ -73,14 +73,15 @@ function loadPlayers() {
       p.className = "playerItem";
       p.innerHTML = `${player.name} - ${player.playerClass} - ${player.nick}`;
 
-      // Botão remover
-      const removeBtn = document.createElement("button");
-      removeBtn.textContent = "❌"; // emoji X
-      removeBtn.className = "removeBtn";
-      removeBtn.disabled = !isAdmin; // só habilita se admin
-      removeBtn.onclick = () => removePlayer(player.nick);
+      // Botão remover (apenas se admin)
+      if (isAdmin) {
+        const removeBtn = document.createElement("button");
+        removeBtn.textContent = "❌";
+        removeBtn.className = "removeBtn";
+        removeBtn.onclick = () => removePlayer(player.nick);
+        p.appendChild(removeBtn);
+      }
 
-      p.appendChild(removeBtn);
       listDiv.appendChild(p);
 
       if (ALLOWED_CLASSES.includes(player.playerClass)) {
@@ -113,12 +114,12 @@ function loadPlayers() {
     totalBox.textContent = `Total: ${totalPlayers}`;
     summaryDiv.appendChild(totalBox);
 
-    updateGroups(); // atualiza selects dos grupos
+    updateGroups();
   });
 }
 loadPlayers();
 
-// Remover jogador com autenticação
+// Remover jogador
 function removePlayer(nick) {
   if (!isAdmin) return;
   if (confirm(`Remover jogador ${nick}?`)) {
@@ -128,10 +129,8 @@ function removePlayer(nick) {
 
 // -------------------- Grupos --------------------
 
-// Cria um novo grupo
 function createGroup() {
   if (!isAdmin) return;
-
   db.ref("groups").once("value").then(snapshot => {
     const groupCount = snapshot.numChildren();
     if (groupCount >= 10) {
@@ -145,7 +144,6 @@ function createGroup() {
   });
 }
 
-// Renderiza grupos
 function loadGroups() {
   db.ref("groups").on("value", snapshot => {
     const groupsDiv = document.getElementById("groups");
@@ -163,47 +161,46 @@ function loadGroups() {
       title.textContent = groupName;
 
       // Botão encerrar grupo
-      const closeBtn = document.createElement("button");
-      closeBtn.textContent = "Encerrar Grupo";
-      closeBtn.style.backgroundColor = "#ff4d4d";
-      closeBtn.style.color = "white";
-      closeBtn.style.marginLeft = "10px";
-      closeBtn.disabled = !isAdmin;
-      closeBtn.onclick = () => {
-        if (!isAdmin) return;
-        if (confirm(`Encerrar ${groupName}?`)) {
-          db.ref("groups/" + groupName).remove();
-        }
-      };
+      if (isAdmin) {
+        const closeBtn = document.createElement("button");
+        closeBtn.textContent = "Encerrar Grupo";
+        closeBtn.style.backgroundColor = "#ff4d4d";
+        closeBtn.style.color = "white";
+        closeBtn.style.marginLeft = "10px";
+        closeBtn.onclick = () => {
+          if (confirm(`Encerrar ${groupName}?`)) {
+            db.ref("groups/" + groupName).remove();
+          }
+        };
+        title.appendChild(closeBtn);
+      }
 
-      title.appendChild(closeBtn);
       groupBox.appendChild(title);
 
-      // 5 selects
-      groupData.members.forEach((member, index) => {
-        const select = document.createElement("select");
-        select.innerHTML = `<option value="">-- vazio --</option>`;
+      // 5 selects (só se admin)
+      if (isAdmin) {
+        groupData.members.forEach((member, index) => {
+          const select = document.createElement("select");
+          select.innerHTML = `<option value="">-- vazio --</option>`;
 
-        db.ref("players").once("value").then(playersSnap => {
-          playersSnap.forEach(playerSnap => {
-            const nick = playerSnap.key;
-            const option = document.createElement("option");
-            option.value = nick;
-            option.textContent = nick;
-            if (member === nick) option.selected = true;
-            select.appendChild(option);
+          db.ref("players").once("value").then(playersSnap => {
+            playersSnap.forEach(playerSnap => {
+              const nick = playerSnap.key;
+              const option = document.createElement("option");
+              option.value = nick;
+              option.textContent = nick;
+              if (member === nick) option.selected = true;
+              select.appendChild(option);
+            });
           });
+
+          select.onchange = () => {
+            db.ref("groups/" + groupName + "/members/" + index).set(select.value);
+          };
+
+          groupBox.appendChild(select);
         });
-
-        select.disabled = !isAdmin;
-
-        select.onchange = () => {
-          if (!isAdmin) return;
-          db.ref("groups/" + groupName + "/members/" + index).set(select.value);
-        };
-
-        groupBox.appendChild(select);
-      });
+      }
 
       groupsDiv.appendChild(groupBox);
     });
@@ -211,17 +208,32 @@ function loadGroups() {
 }
 loadGroups();
 
-// Atualiza selects dos grupos quando jogadores mudam
 function updateGroups() {
   loadGroups();
 }
 
 // -------------------- Admin --------------------
 
-// Exportar lista para txt
+function adminLogin() {
+  const email = prompt("Digite seu email autorizado:");
+  if (!ADMIN_EMAILS.includes(email)) {
+    alert("❌ Email não autorizado!");
+    return;
+  }
+  isAdmin = true;
+  alert("✅ Acesso administrativo liberado!");
+
+  document.getElementById("exportBtn").disabled = false;
+  document.getElementById("clearBtn").disabled = false;
+  document.getElementById("createGroupBtn").disabled = false;
+
+  loadPlayers();
+  loadGroups();
+}
+
+// Exportar lista
 function exportList() {
   if (!isAdmin) return;
-
   db.ref("players").get().then(snapshot => {
     let txt = "";
     snapshot.forEach(child => {
@@ -238,24 +250,7 @@ function exportList() {
 // Limpar lista
 function clearList() {
   if (!isAdmin) return;
-
   if (confirm("Deseja realmente limpar toda a lista?")) {
     db.ref("players").remove();
   }
-}
-
-// -------------------- Autenticação --------------------
-
-function authenticateAdmin() {
-  const email = prompt("Digite seu email autorizado:");
-  if (!ADMIN_EMAILS.includes(email)) {
-    alert("❌ Email não autorizado!");
-    return;
-  }
-  isAdmin = true;
-  alert("✅ Autenticação concluída! Acesso administrativo liberado.");
-  document.getElementById("exportBtn").disabled = false;
-  document.getElementById("clearBtn").disabled = false;
-  document.getElementById("createGroupBtn").disabled = false;
-  loadPlayers(); // Atualiza botões de remover
 }

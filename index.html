@@ -71,12 +71,21 @@
             font-weight: bold;
             margin-bottom: 10px;
         }
+        #admBtn {
+            background-color: #ff0000;
+            color: black;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
 
     <h1>ExilliuM</h1>
     <h2>Eventos PVP - Registro de jogadores</h2>
+
+    <button id="admBtn" onclick="adminLogin()">ADM ></button>
+    <br>
 
     <input type="text" id="name" placeholder="Nome">
     <input type="text" id="class" placeholder="Classe (BK, MG, DL, SM, ELF)">
@@ -85,13 +94,12 @@
     <button onclick="addPlayer()">Registrar jogador</button>
     <button id="exportBtn" onclick="exportList()" disabled>Exportar lista</button>
     <button id="clearBtn" onclick="clearList()" disabled>Limpar lista</button>
-    <button id="createGroupBtn" onclick="createGroup()" disabled>Criar Grupo</button>
-    <button id="adminBtn" onclick="authenticateAdmin()">ADM</button>
 
     <div id="playerList"></div>
     <div id="playerSummary"></div>
 
     <h2>Grupos</h2>
+    <button id="createGroupBtn" onclick="createGroup()" disabled>Criar Grupo</button>
     <div id="groups"></div>
 
     <!-- Firebase SDK -->
