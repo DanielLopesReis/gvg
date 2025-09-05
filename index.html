@@ -1,76 +1,80 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Registro de Jogadores</title>
-<style>
-  body {
-    background-color: #000;
-    color: #fff;
-    font-family: Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding-top: 50px;
-  }
-  .container {
-    text-align: center;
-    width: 600px;
-  }
-  input, select, button {
-    margin: 5px;
-    padding: 8px;
-    font-size: 16px;
-  }
-  input {
-    width: 150px;
-  }
-  select {
-    width: 120px;
-  }
-  button {
-    background-color: red;
-    color: white;
-    border: none;
-    cursor: pointer;
-  }
-  button:hover {
-    opacity: 0.8;
-  }
-  ul {
-    text-align: left;
-    margin-top: 20px;
-    list-style-type: none;
-    padding-left: 0;
-  }
-  li {
-    margin: 5px 0;
-  }
-</style>
+    <meta charset="UTF-8">
+    <title>ExilliuM</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        h1 { color: red; font-size: 36px; }
+        h2 { color: red; font-size: 24px; }
+        input, select, button {
+            margin: 5px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid red;
+        }
+        button {
+            background-color: red;
+            color: white;
+            cursor: pointer;
+        }
+        #playerList {
+            margin-top: 15px;
+            border-top: 1px solid red;
+            padding-top: 10px;
+        }
+        .player-item {
+            margin: 5px 0;
+        }
+        #groupContainer {
+            margin-top: 20px;
+        }
+        select.group-select {
+            margin: 3px;
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-  <h1>Registro de Jogadores</h1>
-  <button id="btnAdm">ADM</button><br>
-  
-  <input type="text" id="nome" placeholder="Nome">
-  <input type="text" id="classe" placeholder="Classe">
-  <input type="text" id="nick" placeholder="Nick"><br>
+    <h1>ExilliuM</h1>
+    <h2>Eventos PvP - Registro de jogadores</h2>
 
-  <button id="btnRegistrar">Registrar Jogador</button>
-  <button id="btnExportar">Exportar Lista</button>
-  <button id="btnLimpar">Limpar Lista</button><br>
+    <div id="authContainer">
+        <button id="admLoginBtn">ADM</button>
+    </div>
 
-  <button id="btnCriarGrupo">Criar Grupo</button>
-  <button id="btnRemoverGrupo" style="display:none;">Remover Grupo</button>
+    <div id="registerContainer">
+        <input type="text" id="name" placeholder="Nome">
+        <select id="classe">
+            <option value="">Classe</option>
+            <option value="BK">BK</option>
+            <option value="MG">MG</option>
+            <option value="DL">DL</option>
+            <option value="SM">SM</option>
+            <option value="ELF">ELF</option>
+        </select>
+        <input type="text" id="nick" placeholder="Nick">
+        <br>
+        <button id="registerBtn">Registrar Jogador</button>
+        <button id="exportBtn">Exportar Lista</button>
+        <button id="clearBtn">Limpar Lista</button>
+    </div>
 
-  <ul id="listaJogadores"></ul>
-</div>
+    <div id="playerList"></div>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="script.js"></script>
+    <div id="groupContainer">
+        <button id="createGroupBtn">Criar Grupo</button>
+        <div id="groupList"></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
