@@ -2,20 +2,20 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>ExilliuM</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ExilliuM - Eventos PvP</title>
   <link rel="stylesheet" href="style.css">
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
 <body>
   <div class="container">
     <h1>ExilliuM</h1>
-    <h2 id="subtitle">Eventos PvP - Registro de jogadores</h2>
+    <h2 style="color:white;">Eventos PvP - Registro de jogadores</h2>
 
-    <button id="btnAdmin">ADM</button>
+    <button id="admBtn">ADM</button>
 
-    <div class="input-row">
+    <div class="registro">
       <input type="text" id="nome" placeholder="Nome">
       <select id="classe">
         <option value="">Classe</option>
@@ -28,16 +28,22 @@
       <input type="text" id="nick" placeholder="Nick">
     </div>
 
-    <div class="button-row">
-      <button id="registrar">Registrar jogador</button>
-      <button id="exportar">Exportar lista</button>
-      <button id="limparLista">Limpar lista</button>
+    <div class="botoes">
+      <button id="registrarBtn">Registrar Jogador</button>
+      <button id="exportarBtn">Exportar Lista</button>
+      <button id="limparBtn">Limpar Lista</button>
     </div>
 
-    <div id="listaJogadores" class="lista"></div>
-    <hr class="divider">
+    <hr class="linha-separacao">
 
-    <div id="gruposContainer" class="grupos-container"></div>
+    <div id="listaJogadores"></div>
+
+    <div class="botoes">
+      <button id="criarGrupoBtn">Criar Grupo</button>
+      <button id="removerGrupoBtn">Remover Grupo</button>
+    </div>
+
+    <div id="gruposContainer"></div>
   </div>
 
   <script src="script.js"></script>
