@@ -16,6 +16,11 @@ const db = firebase.database();
 const ADMIN_EMAIL = "daniel.consultor01@gmail.com";
 let isAdmin = false;
 
+// Verifica se o status de ADM está salvo no armazenamento local ao carregar a página.
+if (localStorage.getItem('isAdmin') === 'true') {
+    isAdmin = true;
+}
+
 // ---------------- Jogadores ----------------
 function addPlayer() {
     const name = document.getElementById("name").value.trim();
@@ -72,6 +77,8 @@ document.getElementById("admLoginBtn").onclick = function(){
     const email = prompt("Informe seu email autorizado:");
     if(email === ADMIN_EMAIL){
         isAdmin = true;
+        // Salva o status de ADM no armazenamento local para persistência.
+        localStorage.setItem('isAdmin', 'true');
         alert("Login ADM efetuado!");
         loadPlayers();
     } else {
