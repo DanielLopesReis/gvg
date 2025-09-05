@@ -12,9 +12,20 @@
             text-align: center;
             padding: 20px;
         }
-        h1 { color: red; margin-bottom: 10px; }
-        h2 { color: #fff; margin-bottom: 20px; }
-        input, select { padding: 8px; margin: 5px; border-radius: 4px; border: none; }
+        h1 {
+            color: red;
+            margin-bottom: 10px;
+        }
+        h2 {
+            color: #fff;
+            margin-bottom: 20px;
+        }
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border-radius: 4px;
+            border: none;
+        }
         button {
             padding: 6px 12px;
             margin: 5px;
@@ -24,7 +35,13 @@
             color: black;
             cursor: pointer;
         }
-        #playerList, #playerSummary, #groups { margin-top: 20px; max-width: 800px; margin-left: auto; margin-right: auto; text-align: left; }
+        #playerList, #playerSummary, #groups {
+            margin-top: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: left;
+        }
         .playerItem {
             background-color: #2e2e2e;
             margin: 5px 0;
@@ -34,10 +51,26 @@
             justify-content: space-between;
             align-items: center;
         }
-        .removeBtn { background-color: #ff4d4d; color: white; font-size: 12px; padding: 3px 6px; }
-        #playerSummary { margin-top: 15px; padding: 10px; }
-        .groupBox { background-color: #2e2e2e; padding: 10px; border-radius: 6px; margin: 10px 0; }
-        .groupTitle { font-weight: bold; margin-bottom: 10px; }
+        .removeBtn {
+            background-color: #ff4d4d;
+            color: white;
+            font-size: 12px;
+            padding: 3px 6px;
+        }
+        #playerSummary {
+            margin-top: 15px;
+            padding: 10px;
+        }
+        .groupBox {
+            background-color: #2e2e2e;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .groupTitle {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -50,15 +83,15 @@
     <input type="text" id="nick" placeholder="Nick">
     <br>
     <button onclick="addPlayer()">Registrar jogador</button>
-    <button id="exportBtn" onclick="exportList()" disabled>Exportar lista</button>
-    <button id="clearBtn" onclick="clearList()" disabled>Limpar lista</button>
-    <button id="admBtn" onclick="admLogin()">Login ADM</button>
+    <button onclick="exportList()" id="exportBtn">Exportar lista</button>
+    <button onclick="clearList()" id="clearBtn">Limpar lista</button>
+    <button onclick="loginADM()">ADM</button>
 
     <div id="playerList"></div>
     <div id="playerSummary"></div>
 
     <h2>Grupos</h2>
-    <button id="createGroupBtn" onclick="createGroup()" disabled>Criar Grupo</button>
+    <button onclick="createGroup()" id="createGroupBtn">Criar Grupo</button>
     <div id="groups"></div>
 
     <!-- Firebase SDK -->
@@ -67,5 +100,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
     <script src="script.js"></script>
+
 </body>
 </html>
