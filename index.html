@@ -2,48 +2,39 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ExilliuM - Eventos PvP</title>
 <link rel="stylesheet" href="style.css">
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="script.js" defer></script>
 </head>
 <body>
+  <h1 id="titulo">ExilliuM</h1>
+  <h2 id="subtitulo">Eventos PvP - Registro de jogadores</h2>
 
-<h1 style="color:red;">ExilliuM</h1>
-<h2 style="color:white;">Eventos PvP - Registro de jogadores</h2>
+  <button id="btnAdm">ADM</button>
 
-<button id="admBtn">ADM</button>
-
-<div id="registro">
+  <div class="form-group">
     <input type="text" id="nome" placeholder="Nome">
     <select id="classe">
-        <option value="" disabled selected>Classe</option>
-        <option>BK</option>
-        <option>MG</option>
-        <option>DL</option>
-        <option>SM</option>
-        <option>ELF</option>
+      <option value="">Classe</option>
+      <option value="BK">BK</option>
+      <option value="MG">MG</option>
+      <option value="DL">DL</option>
+      <option value="SM">SM</option>
+      <option value="ELF">ELF</option>
     </select>
     <input type="text" id="nick" placeholder="Nick">
-    <button id="registrar">Registrar jogador</button>
-    <button id="exportar">Exportar lista</button>
-    <button id="limpar">Limpar lista</button>
-</div>
+  </div>
 
-<hr>
+  <button id="registrar">Registrar Jogador</button>
+  <button id="exportar">Exportar Lista</button>
+  <button id="limparLista">Limpar Lista</button>
 
-<div id="listaJogadores"></div>
+  <div id="listaJogadores"></div>
+  <hr class="linhaSeparadora">
 
-<hr style="border:1px solid red;">
-
-<div>
-    <button id="criarGrupo">Criar grupo</button>
-</div>
-
-<div id="gruposContainer"></div>
-
-<script src="script.js"></script>
+  <button id="criarGrupo">Criar Grupo</button>
+  <div id="gruposContainer" class="gruposContainer"></div>
 </body>
 </html>

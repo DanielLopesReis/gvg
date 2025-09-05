@@ -1,135 +1,198 @@
-// Firebase config
+// Firebase
 const firebaseConfig = {
-    apiKey: "SEU_API_KEY",
-    authDomain: "SEU_AUTH_DOMAIN",
-    databaseURL: "SEU_DB_URL",
-    projectId: "SEU_PROJECT_ID",
-    storageBucket: "SEU_STORAGE",
-    messagingSenderId: "SEU_SENDER_ID",
-    appId: "SEU_APP_ID"
+  apiKey: "SUA_API_KEY",
+  authDomain: "SEU_PROJECT_ID.firebaseapp.com",
+  databaseURL: "https://SEU_PROJECT_ID.firebaseio.com",
+  projectId: "SEU_PROJECT_ID",
+  storageBucket: "SEU_PROJECT_ID.appspot.com",
+  messagingSenderId: "SUA_MESSAGING_SENDER_ID",
+  appId: "SEU_APP_ID"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// Variáveis
-let admLogado = false;
-let grupoCount = 0;
+// Variáveis globais
+let jogadores = [];
+let grupos = [];
+let admAutenticado = false;
+const emailAutorizado = "daniel.consultor01@gmail.com";
 
-// Autenticação ADM por email
-document.getElementById("admBtn").onclick = () => {
-    const email = prompt("Informe seu email autorizado:");
-    if(email === "daniel.consultor01@gmail.com"){
-        admLogado = true;
-        alert("ADM autenticado!");
-    } else {
-        alert("Email não autorizado!");
-    }
-};
+// Seletores
+const btnAdm = document.getElementById("btnAdm");
+const registrarBtn = document.getElementById("registrar");
+const exportarBtn = document.getElementById("exportar");
+const limparListaBtn = document.getElementById("limparLista");
+const listaDiv = document.getElementById("listaJogadores");
+const criarGrupoBtn = document.getElementById("criarGrupo");
+const gruposContainer = document.getElementById("gruposContainer");
 
-// Função para registrar jogador
-document.getElementById("registrar").onclick = () => {
-    const nome = document.getElementById("nome").value.trim();
-    const classe = document.getElementById("classe").value;
-    const nick = document.getElementById("nick").value.trim();
+// Autenticação ADM
+btnAdm.addEventListener("click", () => {
+  const email = prompt("Informe o email autorizado:");
+  if(email === emailAutorizado){
+    admAutenticado = true;
+    alert("ADM autenticado!");
+  } else {
+    alert("Email não autorizado!");
+  }
+});
 
-    if(!nome || !classe || !nick){ alert("Preencha todos os campos."); return; }
+// Registrar jogador
+registrarBtn.addEventListener("click", () => {
+  const nome = document.getElementById("nome").value.trim();
+  const classe = document.getElementById("classe").value;
+  const nick = document.getElementById("nick").value.trim();
 
-    db.ref("players").orderByChild("nick").equalTo(nick).once("value").then(snap=>{
-        if(snap.exists()){
-            alert("Nick já cadastrado.");
-        } else {
-            db.ref("players").push({nome,classe,nick});
-            atualizarLista();
+  if(!nome || !classe || !nick){
+    alert("Preencha todos os campos");
+    return;
+  }
+
+  if(jogadores.find(j => j.nick === nick)){
+    alert("Nick já cadastrado");
+    return;
+  }
+
+  const jogador = { nome, classe, nick };
+  jogadores.push(jogador);
+  salvarJogadores();
+  renderizarJogadores();
+});
+
+// Renderizar lista de jogadores
+function renderizarJogadores(){
+  listaDiv.innerHTML = "";
+  jogadores.forEach(j => {
+    const div = document.createElement("div");
+    div.className = "jogador";
+    div.textContent = `${j.nome} - ${j.classe} - ${j.nick}`;
+    if(admAutenticado){
+      const remover = document.createElement("button");
+      remover.textContent = "X";
+      remover.addEventListener("click", () => {
+        if(confirm("Remover jogador?")){
+          jogadores = jogadores.filter(p => p.nick !== j.nick);
+          salvarJogadores();
+          renderizarJogadores();
         }
-    });
-};
-
-// Atualiza lista de jogadores
-function atualizarLista(){
-    db.ref("players").once("value").then(snapshot=>{
-        const listaDiv = document.getElementById("listaJogadores");
-        listaDiv.innerHTML="";
-        snapshot.forEach(child=>{
-            const j = child.val();
-            const div = document.createElement("div");
-            div.className="jogador";
-            div.textContent = `${j.nome} - ${j.classe} - ${j.nick}`;
-            if(admLogado){
-                const rmBtn = document.createElement("button");
-                rmBtn.textContent="X";
-                rmBtn.onclick = () => { child.ref.remove(); atualizarLista(); };
-                div.appendChild(rmBtn);
-            }
-            listaDiv.appendChild(div);
-        });
-    });
+      });
+      div.appendChild(remover);
+    }
+    listaDiv.appendChild(div);
+  });
 }
 
-// Limpar lista
-document.getElementById("limpar").onclick = () => {
-    if(!admLogado){ alert("Somente ADM!"); return; }
-    if(confirm("Deseja limpar toda a lista?")){
-        db.ref("players").remove();
-        atualizarLista();
+// Criar grupos
+criarGrupoBtn.addEventListener("click", () => {
+  if(grupos.length >= 10){
+    alert("Máximo 10 grupos");
+    return;
+  }
+  const grupoId = grupos.length + 1;
+  const grupo = { id: grupoId, membros: [] };
+  grupos.push(grupo);
+  salvarGrupos();
+  renderizarGrupos();
+});
+
+function renderizarGrupos(){
+  gruposContainer.innerHTML = "";
+  grupos.forEach(grupo => {
+    const div = document.createElement("div");
+    div.className = "grupo";
+
+    const h3 = document.createElement("h3");
+    h3.textContent = `PT${grupo.id}`;
+    div.appendChild(h3);
+
+    if(admAutenticado){
+      const remover = document.createElement("span");
+      remover.className = "removerGrupo";
+      remover.textContent = "X";
+      remover.addEventListener("click", () => {
+        if(confirm("Remover grupo?")){
+          grupos = grupos.filter(g => g.id !== grupo.id);
+          salvarGrupos();
+          renderizarGrupos();
+        }
+      });
+      div.appendChild(remover);
     }
-};
+
+    // Selects dos membros
+    for(let i=0; i<5; i++){
+      const sel = document.createElement("select");
+      const optionVazio = document.createElement("option");
+      optionVazio.value = "";
+      optionVazio.textContent = "Selecione nick";
+      sel.appendChild(optionVazio);
+
+      jogadores.forEach(j => {
+        // Apenas nicks não selecionados em nenhum grupo
+        const nicksEmUso = grupos.flatMap(g => g.membros).filter(n => n);
+        if(!nicksEmUso.includes(j.nick)){
+          const opt = document.createElement("option");
+          opt.value = j.nick;
+          opt.textContent = j.nick;
+          sel.appendChild(opt);
+        }
+      });
+
+      sel.value = grupo.membros[i] || "";
+      sel.addEventListener("change", () => {
+        grupo.membros[i] = sel.value;
+        salvarGrupos();
+        renderizarGrupos();
+      });
+
+      div.appendChild(sel);
+    }
+
+    gruposContainer.appendChild(div);
+  });
+}
 
 // Exportar lista
-document.getElementById("exportar").onclick = () => {
-    db.ref("players").once("value").then(snapshot=>{
-        let txt="";
-        snapshot.forEach(child=>{
-            const j = child.val();
-            txt += `${j.nome} - ${j.classe} - ${j.nick}\n`;
-        });
-        const blob = new Blob([txt], {type:"text/plain"});
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = "lista.txt";
-        a.click();
-    });
-};
+exportarBtn.addEventListener("click", () => {
+  let texto = jogadores.map(j => `${j.nome} - ${j.classe} - ${j.nick}`).join("\n");
+  const blob = new Blob([texto], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "listaJogadores.txt";
+  a.click();
+  URL.revokeObjectURL(url);
+});
 
-// Criar grupo
-document.getElementById("criarGrupo").onclick = criarGrupo;
+// Limpar lista
+limparListaBtn.addEventListener("click", () => {
+  if(!admAutenticado){ alert("Somente ADM"); return; }
+  if(confirm("Limpar lista?")){
+    jogadores = [];
+    salvarJogadores();
+    renderizarJogadores();
+  }
+});
 
-function criarGrupo(){
-    if(grupoCount >=10){ alert("Máximo 10 grupos."); return; }
-    grupoCount++;
-    const grupoDiv = document.createElement("div");
-    grupoDiv.className="grupo";
-    grupoDiv.id="grupo"+grupoCount;
-    grupoDiv.innerHTML=`<h3>PT${grupoCount} <button style="float:right;" onclick="removerGrupo('${grupoDiv.id}')">X</button></h3>`;
-
-    db.ref("players").once("value").then(snapshot=>{
-        const nicks = [];
-        snapshot.forEach(child => nicks.push(child.val().nick));
-        for(let i=1;i<=5;i++){
-            const select = document.createElement("select");
-            select.innerHTML = `<option value="" disabled selected>Membro ${i}</option>`+
-                nicks.map(nick=>`<option value="${nick}">${nick}</option>`).join('');
-            select.onchange = () => {
-                const todasSelects = grupoDiv.querySelectorAll("select");
-                const selecionados = Array.from(todasSelects).map(s=>s.value).filter(v=>v);
-                todasSelects.forEach(s=>{
-                    Array.from(s.options).forEach(opt=>{
-                        if(opt.value && opt.value!==s.value){
-                            opt.disabled = selecionados.includes(opt.value);
-                        }
-                    });
-                });
-            };
-            grupoDiv.appendChild(select);
-        }
-        document.getElementById("gruposContainer").appendChild(grupoDiv);
-    });
+// Persistência
+function salvarJogadores(){
+  db.ref("players").set(jogadores);
 }
 
-function removerGrupo(id){
-    if(!admLogado){ alert("Somente ADM!"); return; }
-    const g = document.getElementById(id);
-    if(g){ g.remove(); grupoCount--; }
+function salvarGrupos(){
+  db.ref("groups").set(grupos);
 }
 
-// Atualiza lista ao carregar
-window.onload = atualizarLista;
+function carregarDados(){
+  db.ref("players").on("value", snapshot => {
+    jogadores = snapshot.val() || [];
+    renderizarJogadores();
+  });
+
+  db.ref("groups").on("value", snapshot => {
+    grupos = snapshot.val() || [];
+    renderizarGrupos();
+  });
+}
+
+carregarDados();
