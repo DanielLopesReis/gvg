@@ -12,14 +12,8 @@
             text-align: center;
             padding: 20px;
         }
-        h1 {
-            color: red;
-            margin-bottom: 10px;
-        }
-        h2 {
-            color: #fff;
-            margin-bottom: 20px;
-        }
+        h1 { color: red; margin-bottom: 10px; }
+        h2 { color: #fff; margin-bottom: 20px; }
         input, select {
             padding: 8px;
             margin: 5px;
@@ -57,20 +51,15 @@
             font-size: 12px;
             padding: 3px 6px;
         }
-        #playerSummary {
-            margin-top: 15px;
-            padding: 10px;
-        }
+        #playerSummary { margin-top: 15px; padding: 10px; }
         .groupBox {
             background-color: #2e2e2e;
             padding: 10px;
             border-radius: 6px;
             margin: 10px 0;
         }
-        .groupTitle {
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
+        .groupTitle { font-weight: bold; margin-bottom: 10px; }
+        #authSection { margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -78,7 +67,9 @@
     <h1>ExilliuM</h1>
     <h2>Eventos PVP - Registro de jogadores</h2>
 
-    <button onclick="admLogin()">ADM</button><br>
+    <div id="authSection">
+        <button onclick="adminLogin()">ADM</button>
+    </div>
 
     <input type="text" id="name" placeholder="Nome">
     <input type="text" id="class" placeholder="Classe (BK, MG, DL, SM, ELF)">
@@ -102,6 +93,5 @@
 
     <!-- Script principal -->
     <script src="script.js"></script>
-
 </body>
 </html>
