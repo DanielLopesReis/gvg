@@ -1,167 +1,137 @@
-// 🔥 Config do Firebase
+// Firebase Config
 const firebaseConfig = {
-  apiKey: "API_KEY_AQUI",
-  authDomain: "PROJECT.firebaseapp.com",
-  databaseURL: "https://PROJECT.firebaseio.com",
-  projectId: "PROJECT",
-  storageBucket: "PROJECT.appspot.com",
-  messagingSenderId: "SENDER_ID",
-  appId: "APP_ID"
+    apiKey: "SUA_API_KEY",
+    authDomain: "SEU_AUTH_DOMAIN",
+    databaseURL: "SUA_DATABASE_URL",
+    projectId: "SEU_PROJECT_ID",
+    storageBucket: "SEU_STORAGE_BUCKET",
+    messagingSenderId: "SEU_SENDER_ID",
+    appId: "SEU_APP_ID"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-const ADMIN_EMAILS = ["daniel.consultor01@gmail.com"];
-const ALLOWED_CLASSES = ["BK", "MG", "DL", "SM", "ELF"];
+// Estado global
+let players = [];
 let isADM = false;
+let groupCount = 0;
 
-// -------------------- Autenticação ADM --------------------
-function loginADM() {
-  const email = prompt("Digite seu email autorizado:");
-  if (ADMIN_EMAILS.includes(email)) {
-    isADM = true;
-    alert("✅ Acesso ADM liberado!");
-    loadPlayers();
-    loadGroups();
-  } else {
-    alert("❌ Email não autorizado!");
-  }
-}
+// Carregar jogadores do Firebase ao iniciar
+db.ref('players').on('value', snapshot => {
+    players = [];
+    snapshot.forEach(child => {
+        players.push(child.val());
+    });
+    renderPlayers();
+});
 
-// -------------------- Jogadores --------------------
+// Função de registro de jogador (qualquer usuário)
 function addPlayer() {
-  const name = document.getElementById("name").value.trim();
-  const playerClass = document.getElementById("class").value.trim().toUpperCase();
-  const nick = document.getElementById("nick").value.trim();
+    const name = document.getElementById('name').value.trim();
+    const cls = document.getElementById('class').value.trim();
+    const nick = document.getElementById('nick').value.trim();
 
-  if (!name || !playerClass || !nick) return alert("Preencha todos os campos!");
-  if (!ALLOWED_CLASSES.includes(playerClass)) return alert("Classe inválida!");
+    if (!name || !cls || !nick) {
+        alert("Preencha todos os campos!");
+        return;
+    }
 
-  db.ref("players/" + nick).get().then(snapshot => {
-    if (snapshot.exists()) return alert("Este nick já foi registrado!");
-    db.ref("players/" + nick).set({ name, playerClass, nick }).then(() => {
-      document.getElementById("name").value = "";
-      document.getElementById("class").value = "";
-      document.getElementById("nick").value = "";
+    const player = { name, cls, nick };
+    const playerKey = nick; // usamos o nick como key para evitar duplicados
+
+    db.ref('players/' + playerKey).set(player, error => {
+        if (error) alert("Erro ao registrar jogador!");
+        else {
+            document.getElementById('name').value = '';
+            document.getElementById('class').value = '';
+            document.getElementById('nick').value = '';
+        }
     });
-  });
 }
 
-function loadPlayers() {
-  db.ref("players").on("value", snapshot => {
-    const listDiv = document.getElementById("playerList");
-    const summaryDiv = document.getElementById("playerSummary");
-    listDiv.innerHTML = ""; summaryDiv.innerHTML = "";
+// Renderizar lista de jogadores
+function renderPlayers() {
+    const listDiv = document.getElementById('playerList');
+    listDiv.innerHTML = '';
 
-    const classCount = {}; ALLOWED_CLASSES.forEach(cls => classCount[cls] = 0);
-    let totalPlayers = 0;
-
-    snapshot.forEach(child => {
-      const player = child.val();
-      const div = document.createElement("div");
-      div.className = "playerItem";
-      div.textContent = `${player.name} - ${player.playerClass} - ${player.nick}`;
-      if (isADM) {
-        const btn = document.createElement("button");
-        btn.textContent = "❌"; btn.className = "removeBtn";
-        btn.onclick = () => removePlayer(player.nick);
-        div.appendChild(btn);
-      }
-      listDiv.appendChild(div);
-
-      if (ALLOWED_CLASSES.includes(player.playerClass)) {
-        classCount[player.playerClass]++; totalPlayers++;
-      }
+    players.forEach((p, index) => {
+        const div = document.createElement('div');
+        div.className = 'playerItem';
+        div.innerHTML = `
+            ${p.name} (${p.cls}) - ${p.nick}
+            ${isADM ? `<button class="removeBtn" onclick="removePlayer('${p.nick}')">Remover</button>` : ''}
+        `;
+        listDiv.appendChild(div);
     });
-
-    ALLOWED_CLASSES.forEach(cls => {
-      const box = document.createElement("div");
-      box.style.display="inline-block"; box.style.margin="5px";
-      box.style.padding="10px"; box.style.backgroundColor="#4e4e4e";
-      box.style.borderRadius="4px"; box.style.fontWeight="bold";
-      box.textContent = `${cls}: ${classCount[cls]}`; summaryDiv.appendChild(box);
-    });
-
-    const totalBox = document.createElement("div");
-    totalBox.style.display="inline-block"; totalBox.style.margin="5px";
-    totalBox.style.padding="10px"; totalBox.style.backgroundColor="#6e6e6e";
-    totalBox.style.borderRadius="4px"; totalBox.style.fontWeight="bold";
-    totalBox.textContent = `Total: ${totalPlayers}`; summaryDiv.appendChild(totalBox);
-
-    loadGroups();
-  });
 }
 
+// Remover jogador (ADM)
 function removePlayer(nick) {
-  if (!isADM) return alert("Ação ADM necessária!");
-  if (confirm(`Remover jogador ${nick}?`)) db.ref("players/" + nick).remove();
+    if (!isADM) return alert("Acesso ADM necessário!");
+    db.ref('players/' + nick).remove();
 }
 
-// -------------------- Grupos --------------------
-function createGroup() {
-  if (!isADM) return alert("Ação ADM necessária!");
-  db.ref("players").get().then(snapshot => {
-    if (!snapshot.exists()) return alert("Não há jogadores na lista!");
-    
-    const groupName = `PT ${Math.floor(Math.random() * 10000)}`; // Nome temporário
-    db.ref("groups/" + groupName).set({ members: [] });
-    alert(`Grupo ${groupName} criado!`);
-  });
-}
-
-function loadGroups() {
-  db.ref("groups").on("value", snapshot => {
-    const groupsDiv = document.getElementById("groups"); groupsDiv.innerHTML="";
-    snapshot.forEach(child => {
-      const groupName = child.key, groupData = child.val();
-      const box = document.createElement("div"); box.className="groupBox";
-
-      const title = document.createElement("div"); title.className="groupTitle"; title.textContent=groupName;
-      if (isADM) {
-        const btn = document.createElement("button"); btn.textContent="Encerrar Grupo";
-        btn.style.backgroundColor="#ff4d4d"; btn.style.color="white"; btn.style.marginLeft="10px";
-        btn.onclick = ()=> { if(confirm(`Encerrar ${groupName}?`)) db.ref("groups/"+groupName).remove(); };
-        title.appendChild(btn);
-      }
-      box.appendChild(title);
-
-      for(let i=0;i<5;i++){
-        const select=document.createElement("select");
-        select.innerHTML=`<option value="">-- vazio --</option>`;
-        db.ref("players").once("value").then(playersSnap=>{
-          playersSnap.forEach(pSnap=>{
-            const nick=pSnap.key;
-            const opt=document.createElement("option");
-            opt.value=nick; opt.textContent=nick;
-            if(groupData.members[i]===nick) opt.selected=true;
-            select.appendChild(opt);
-          });
-        });
-        select.onchange=()=>{
-          const members=[]; box.querySelectorAll("select").forEach(s=>{if(s.value) members.push(s.value);});
-          db.ref("groups/"+groupName+"/members").set(members);
-        };
-        box.appendChild(select);
-      }
-
-      groupsDiv.appendChild(box);
-    });
-  });
-}
-
-// -------------------- Export & Limpar --------------------
+// Exportar lista (ADM)
 function exportList() {
-  if (!isADM) return alert("Ação ADM necessária!");
-  db.ref("players").get().then(snapshot=>{
-    let txt=""; snapshot.forEach(child=>{txt+=`${child.val().name} - ${child.val().playerClass} - ${child.val().nick}\n`;});
-    const blob = new Blob([txt], {type:"text/plain"});
-    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="gvg_lista.txt"; a.click();
-  });
-}
-function clearList() {
-  if (!isADM) return alert("Ação ADM necessária!");
-  if(confirm("Deseja realmente limpar toda a lista?")) db.ref("players").remove();
+    if (!isADM) return alert("Acesso ADM necessário!");
+    let text = players.map(p => `${p.name}, ${p.cls}, ${p.nick}`).join("\n");
+    let blob = new Blob([text], { type: "text/plain" });
+    let link = document.createElement("a");
+    link.download = "players.txt";
+    link.href = URL.createObjectURL(blob);
+    link.click();
 }
 
-// Inicialização
-loadPlayers();
+// Limpar lista (ADM)
+function clearList() {
+    if (!isADM) return alert("Acesso ADM necessário!");
+    if (!confirm("Deseja realmente limpar a lista?")) return;
+    db.ref('players').remove();
+}
+
+// Login ADM global
+function loginADM() {
+    const email = prompt("Digite seu email ADM:");
+    const allowed = ["daniel.consultor01@gmail.com"];
+    if (allowed.includes(email.trim().toLowerCase())) {
+        isADM = true;
+        alert("Acesso ADM liberado!");
+        document.getElementById('exportBtn').classList.remove('hidden');
+        document.getElementById('clearBtn').classList.remove('hidden');
+        document.getElementById('createGroupBtn').classList.remove('hidden');
+        renderPlayers();
+    } else {
+        alert("Email não autorizado!");
+    }
+}
+
+// Criar grupo (ADM)
+function createGroup() {
+    if (!isADM) return alert("Acesso ADM necessário!");
+    if (players.length === 0) return alert("Não há jogadores na lista!");
+
+    groupCount++;
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'groupBox';
+    groupDiv.id = `group${groupCount}`;
+    groupDiv.innerHTML = `<div class="groupTitle">PT${groupCount}</div>`;
+
+    for (let i = 0; i < 5; i++) {
+        const select = document.createElement('select');
+        select.innerHTML = `<option value="">-- Selecionar --</option>`;
+        players.forEach(p => {
+            select.innerHTML += `<option value="${p.nick}">${p.nick}</option>`;
+        });
+        groupDiv.appendChild(select);
+    }
+
+    const removeBtn = document.createElement('button');
+    removeBtn.innerText = 'Remover Grupo';
+    removeBtn.onclick = () => {
+        groupDiv.remove();
+        groupCount--;
+    };
+    groupDiv.appendChild(removeBtn);
+
+    document.getElementById('groups').appendChild(groupDiv);
+}

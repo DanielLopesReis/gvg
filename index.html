@@ -2,58 +2,40 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ExilliuM - Eventos PVP</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Lista de Jogadores</title>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+    <script src="script.js" defer></script>
     <style>
-        body {
-            background-color: #000;
-            color: #fff;
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-        }
-        h1, h2 { margin: 10px; }
-        input { margin: 5px; padding: 5px; }
-        button { margin: 5px; padding: 8px 15px; background-color: #ff4d4d; color: white; border: none; cursor: pointer; border-radius: 4px; }
-        button:hover { opacity: 0.8; }
-        #playerList, #playerSummary, #groups { margin-top: 10px; width: 100%; max-width: 600px; }
-        .playerItem { display: flex; justify-content: space-between; margin: 3px 0; background-color: #222; padding: 5px; border-radius: 4px; }
-        .removeBtn { background-color: #ff4d4d; color: white; border: none; cursor: pointer; }
-        .groupBox { margin: 10px 0; padding: 10px; background-color: #111; border-radius: 5px; }
-        .groupTitle { font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; justify-content: space-between; }
-        select { margin: 3px; padding: 5px; }
+        body { background-color: black; color: white; font-family: Arial, sans-serif; text-align: center; }
+        input, select, button { margin: 5px; padding: 5px; }
+        button { background-color: red; color: white; border: none; cursor: pointer; }
+        .playerItem { margin: 5px 0; }
+        .removeBtn { background-color: darkred; margin-left: 10px; }
+        .groupBox { border: 1px solid red; margin: 10px auto; padding: 10px; width: 300px; }
+        .groupTitle { font-weight: bold; margin-bottom: 5px; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
+    <h1>Lista de Jogadores</h1>
 
-    <h1>ExilliuM</h1>
-    <h2>Eventos PVP - Registro de jogadores</h2>
+    <div>
+        <input id="name" placeholder="Nome">
+        <input id="class" placeholder="Classe">
+        <input id="nick" placeholder="Nick">
+        <button onclick="addPlayer()">Registrar</button>
+    </div>
 
-    <button onclick="loginADM()">ADM</button>
-
-    <input type="text" id="name" placeholder="Nome">
-    <input type="text" id="class" placeholder="Classe (BK, MG, DL, SM, ELF)">
-    <input type="text" id="nick" placeholder="Nick">
-    <br>
-    <button onclick="addPlayer()">Registrar jogador</button>
-    <button onclick="exportList()">Exportar lista</button>
-    <button onclick="clearList()">Limpar lista</button>
+    <div>
+        <button id="loginAdmBtn" onclick="loginADM()">Login ADM</button>
+        <button id="exportBtn" class="hidden" onclick="exportList()">Exportar Lista</button>
+        <button id="clearBtn" class="hidden" onclick="clearList()">Limpar Lista</button>
+        <button id="createGroupBtn" class="hidden" onclick="createGroup()">Criar Grupo</button>
+    </div>
 
     <div id="playerList"></div>
-    <div id="playerSummary"></div>
-
-    <h2>Grupos</h2>
-    <button onclick="createGroup()">Criar Grupo</button>
     <div id="groups"></div>
-
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-
-    <script src="script.js"></script>
 </body>
 </html>
