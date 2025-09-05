@@ -1,47 +1,45 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>ExilliuM</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>ExilliuM</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>ExilliuM</h1>
-        <h2 class="subtitle">Eventos PvP - Registro de jogadores</h2>
+  <div class="container">
+    <h1>ExilliuM</h1>
+    <h2 id="subtitle">Eventos PvP - Registro de jogadores</h2>
 
-        <button id="adminBtn">ADM</button>
+    <button id="btnAdmin">ADM</button>
 
-        <div class="form-row">
-            <input type="text" id="nome" placeholder="Nome">
-            <select id="classe">
-                <option value="">Classe</option>
-                <option value="BK">BK</option>
-                <option value="MG">MG</option>
-                <option value="DL">DL</option>
-                <option value="SM">SM</option>
-                <option value="ELF">ELF</option>
-            </select>
-            <input type="text" id="nick" placeholder="Nick">
-        </div>
-
-        <div class="button-row">
-            <button id="registrarBtn">Registrar jogador</button>
-            <button id="exportarBtn">Exportar lista</button>
-            <button id="limparBtn">Limpar lista</button>
-        </div>
-
-        <div id="listaJogadores"></div>
-        <hr class="separator">
-
-        <div class="button-row">
-            <button id="criarGrupoBtn">Criar grupo</button>
-            <div id="grupos"></div>
-        </div>
+    <div class="input-row">
+      <input type="text" id="nome" placeholder="Nome">
+      <select id="classe">
+        <option value="">Classe</option>
+        <option value="BK">BK</option>
+        <option value="MG">MG</option>
+        <option value="DL">DL</option>
+        <option value="SM">SM</option>
+        <option value="ELF">ELF</option>
+      </select>
+      <input type="text" id="nick" placeholder="Nick">
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <script src="script.js"></script>
+    <div class="button-row">
+      <button id="registrar">Registrar jogador</button>
+      <button id="exportar">Exportar lista</button>
+      <button id="limparLista">Limpar lista</button>
+    </div>
+
+    <div id="listaJogadores" class="lista"></div>
+    <hr class="divider">
+
+    <div id="gruposContainer" class="grupos-container"></div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>

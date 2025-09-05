@@ -1,122 +1,154 @@
-// Firebase
+// Firebase config
 const firebaseConfig = {
-    apiKey: "AIzaSyAH86f5LoSBj63MIR7SzVDGkrLP90Zy6jY",
-    authDomain: "registro-players.firebaseapp.com",
-    databaseURL: "https://registro-players-default-rtdb.firebaseio.com",
-    projectId: "registro-players",
-    storageBucket: "registro-players.appspot.com",
-    messagingSenderId: "156344963881",
-    appId: "1:156344963881:web:79efd9aeade8454d8b5d38",
-    measurementId: "G-7HKNWBDJYT"
+  apiKey: "AIzaSyAH86f5LoSBj63MIR7SzVDGkrLP90Zy6jY",
+  authDomain: "registro-players.firebaseapp.com",
+  databaseURL: "https://registro-players-default-rtdb.firebaseio.com",
+  projectId: "registro-players",
+  storageBucket: "registro-players.appspot.com",
+  messagingSenderId: "156344963881",
+  appId: "1:156344963881:web:79efd9aeade8454d8b5d38",
+  measurementId: "G-7HKNWBDJYT"
 };
 firebase.initializeApp(firebaseConfig);
+
 const db = firebase.database();
 
-let isAdmin = localStorage.getItem('isAdmin') === 'true';
-
-// ADMIN BUTTON
-const adminBtn = document.getElementById('adminBtn');
-adminBtn.addEventListener('click', () => {
-    if (!isAdmin) {
-        let email = prompt("Informe o email autorizado:");
-        if (email === "daniel.consultor01@gmail.com") {
-            isAdmin = true;
-            localStorage.setItem('isAdmin', true);
-            alert("Autenticado como ADM!");
-        } else {
-            alert("Email não autorizado.");
-        }
-    } else {
-        alert("Já autenticado como ADM!");
-    }
-});
-
 // ELEMENTS
-const nomeInput = document.getElementById('nome');
-const classeInput = document.getElementById('classe');
-const nickInput = document.getElementById('nick');
-const registrarBtn = document.getElementById('registrarBtn');
-const exportarBtn = document.getElementById('exportarBtn');
-const limparBtn = document.getElementById('limparBtn');
+const btnAdmin = document.getElementById('btnAdmin');
+const registrarBtn = document.getElementById('registrar');
+const exportarBtn = document.getElementById('exportar');
+const limparBtn = document.getElementById('limparLista');
 const listaDiv = document.getElementById('listaJogadores');
-const criarGrupoBtn = document.getElementById('criarGrupoBtn');
-const gruposDiv = document.getElementById('grupos');
+const gruposContainer = document.getElementById('gruposContainer');
 
+let adminLogado = false;
 let jogadores = [];
+let grupos = [];
+let grupoCounter = 1;
 
-// Load players from Firebase
-db.ref('players').on('value', snapshot => {
-    jogadores = snapshot.val() ? Object.values(snapshot.val()) : [];
-    atualizarLista();
-});
-
-// REGISTER PLAYER
-registrarBtn.addEventListener('click', () => {
-    const nome = nomeInput.value.trim();
-    const classe = classeInput.value;
-    const nick = nickInput.value.trim();
-    if (!nome || !classe || !nick) {
-        alert("Preencha todos os campos!");
-        return;
+// ADMIN LOGIN
+btnAdmin.addEventListener('click', async () => {
+  const email = prompt("Digite seu email autorizado:");
+  try {
+    const userCredential = await firebase.auth().signInWithEmailAndPassword(email, '123456'); // senha temporária dummy
+    const userEmail = userCredential.user.email;
+    if(userEmail === 'daniel.consultor01@gmail.com'){
+      adminLogado = true;
+      alert("ADM logado!");
+      atualizarLista();
+    } else {
+      alert("Email não autorizado!");
     }
-    const player = { nome, classe, nick };
-    const newRef = db.ref('players').push();
-    newRef.set(player);
-    nomeInput.value = '';
-    classeInput.value = '';
-    nickInput.value = '';
+  } catch(e) {
+    alert("Falha na autenticação. Verifique seu email.");
+  }
 });
 
-// UPDATE LIST
-function atualizarLista() {
-    listaDiv.innerHTML = '';
-    jogadores.forEach((j, i) => {
-        const div = document.createElement('div');
-        div.classList.add('jogador-box');
-        div.innerHTML = `<span>${j.nome} - ${j.classe} - ${j.nick}</span>`;
-        if (isAdmin) {
-            const removeBtn = document.createElement('button');
-            removeBtn.textContent = "Remover";
-            removeBtn.addEventListener('click', () => {
-                if (confirm("Remover jogador?")) {
-                    db.ref('players').child(Object.keys(db.ref('players').get())[i]).remove();
-                }
-            });
-            div.appendChild(removeBtn);
+// REGISTRAR JOGADOR
+registrarBtn.addEventListener('click', () => {
+  const nome = document.getElementById('nome').value.trim();
+  const classe = document.getElementById('classe').value;
+  const nick = document.getElementById('nick').value.trim();
+
+  if(!nome || !classe || !nick) return alert("Preencha todos os campos!");
+
+  const jogador = { nome, classe, nick };
+  jogadores.push(jogador);
+  db.ref('players').set(jogadores);
+  atualizarLista();
+});
+
+// ATUALIZAR LISTA
+function atualizarLista(){
+  listaDiv.innerHTML = '';
+  jogadores.forEach((j, i) => {
+    const div = document.createElement('div');
+    div.classList.add('item');
+    if(adminLogado) div.classList.add('admin');
+    div.innerHTML = `${j.nome} - ${j.classe} - ${j.nick}`;
+    
+    if(adminLogado){
+      const removeBtn = document.createElement('button');
+      removeBtn.textContent = "Remover";
+      removeBtn.classList.add('remove-btn');
+      removeBtn.addEventListener('click', () => {
+        if(confirm("Remover jogador?")){
+          jogadores.splice(i,1);
+          db.ref('players').set(jogadores);
+          atualizarLista();
         }
-        listaDiv.appendChild(div);
-    });
+      });
+      div.appendChild(removeBtn);
+    }
+    listaDiv.appendChild(div);
+  });
 }
 
-// EXPORT LIST
-exportarBtn.addEventListener('click', () => {
-    if (!isAdmin) { alert("Apenas ADM"); return; }
-    let text = jogadores.map(j => `${j.nome} - ${j.classe} - ${j.nick}`).join('\n');
-    alert(text);
-});
-
-// CLEAR LIST
+// LIMPAR LISTA
 limparBtn.addEventListener('click', () => {
-    if (!isAdmin) { alert("Apenas ADM"); return; }
-    if (confirm("Deseja realmente limpar a lista?")) {
-        db.ref('players').remove();
-    }
+  if(!adminLogado) return alert("Somente ADM pode limpar!");
+  if(confirm("Limpar lista completa?")){
+    jogadores = [];
+    db.ref('players').set(jogadores);
+    atualizarLista();
+  }
 });
 
-// CREATE GROUP
-criarGrupoBtn.addEventListener('click', () => {
-    if (!isAdmin) { alert("Apenas ADM"); return; }
-    gruposDiv.innerHTML = '';
-    for (let i = 0; i < 5; i++) {
-        const select = document.createElement('select');
-        const optionDefault = document.createElement('option');
-        optionDefault.textContent = "Selecione jogador";
-        select.appendChild(optionDefault);
-        jogadores.forEach(j => {
-            const option = document.createElement('option');
-            option.textContent = `${j.nome} - ${j.classe} - ${j.nick}`;
-            select.appendChild(option);
-        });
-        gruposDiv.appendChild(select);
+// GRUPOS
+function criarGrupo(){
+  if(!adminLogado) return alert("Somente ADM pode criar grupos!");
+  if(jogadores.length === 0) return alert("Lista vazia!");
+  
+  const grupo = { titulo: `PT${grupoCounter++}`, jogadores: [...jogadores] };
+  grupos.push(grupo);
+  db.ref('grupos').set(grupos);
+  atualizarGrupos();
+}
+
+function atualizarGrupos(){
+  gruposContainer.innerHTML = '';
+  grupos.forEach((g, i) => {
+    const div = document.createElement('div');
+    div.classList.add('grupo');
+    div.innerHTML = `<strong>${g.titulo}</strong><br>${g.jogadores.map(j => `${j.nome} - ${j.classe} - ${j.nick}`).join('<br>')}`;
+    
+    if(adminLogado){
+      const removeBtn = document.createElement('button');
+      removeBtn.textContent = "Remover Grupo";
+      removeBtn.addEventListener('click', () => {
+        if(confirm("Remover grupo?")){
+          grupos.splice(i,1);
+          db.ref('grupos').set(grupos);
+          atualizarGrupos();
+        }
+      });
+      div.appendChild(removeBtn);
     }
+    
+    gruposContainer.appendChild(div);
+  });
+}
+
+// EXPORTAR LISTA
+exportarBtn.addEventListener('click', () => {
+  if(jogadores.length === 0) return alert("Lista vazia!");
+  const texto = jogadores.map(j => `${j.nome} - ${j.classe} - ${j.nick}`).join('\n');
+  const blob = new Blob([texto], {type: "text/plain"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = "jogadores.txt";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+// CARREGAR DO FIREBASE
+db.ref('players').on('value', snapshot => {
+  jogadores = snapshot.val() || [];
+  atualizarLista();
+});
+
+db.ref('grupos').on('value', snapshot => {
+  grupos = snapshot.val() || [];
+  atualizarGrupos();
 });
