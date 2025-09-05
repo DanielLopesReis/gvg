@@ -1,51 +1,49 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ExilliuM - Eventos PvP</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ExilliuM - Eventos PvP</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>ExilliuM</h1>
-    <h2 style="color:white;">Eventos PvP - Registro de jogadores</h2>
 
-    <button id="admBtn">ADM</button>
+<h1 style="color:red;">ExilliuM</h1>
+<h2 style="color:white;">Eventos PvP - Registro de jogadores</h2>
 
-    <div class="registro">
-      <input type="text" id="nome" placeholder="Nome">
-      <select id="classe">
-        <option value="">Classe</option>
-        <option value="BK">BK</option>
-        <option value="MG">MG</option>
-        <option value="DL">DL</option>
-        <option value="SM">SM</option>
-        <option value="ELF">ELF</option>
-      </select>
-      <input type="text" id="nick" placeholder="Nick">
-    </div>
+<button id="admBtn">ADM</button>
 
-    <div class="botoes">
-      <button id="registrarBtn">Registrar Jogador</button>
-      <button id="exportarBtn">Exportar Lista</button>
-      <button id="limparBtn">Limpar Lista</button>
-    </div>
+<div id="registro">
+    <input type="text" id="nome" placeholder="Nome">
+    <select id="classe">
+        <option value="" disabled selected>Classe</option>
+        <option>BK</option>
+        <option>MG</option>
+        <option>DL</option>
+        <option>SM</option>
+        <option>ELF</option>
+    </select>
+    <input type="text" id="nick" placeholder="Nick">
+    <button id="registrar">Registrar jogador</button>
+    <button id="exportar">Exportar lista</button>
+    <button id="limpar">Limpar lista</button>
+</div>
 
-    <hr class="linha-separacao">
+<hr>
 
-    <div id="listaJogadores"></div>
+<div id="listaJogadores"></div>
 
-    <div class="botoes">
-      <button id="criarGrupoBtn">Criar Grupo</button>
-      <button id="removerGrupoBtn">Remover Grupo</button>
-    </div>
+<hr style="border:1px solid red;">
 
-    <div id="gruposContainer"></div>
-  </div>
+<div>
+    <button id="criarGrupo">Criar grupo</button>
+</div>
 
-  <script src="script.js"></script>
+<div id="gruposContainer"></div>
+
+<script src="script.js"></script>
 </body>
 </html>
