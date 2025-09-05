@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ExilliuM - Guild vs Guild</title>
+    <title>ExilliuM - Eventos PVP</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -20,24 +20,24 @@
             color: #fff;
             margin-bottom: 20px;
         }
-        input {
+        input, select {
             padding: 8px;
             margin: 5px;
             border-radius: 4px;
             border: none;
         }
         button {
-            padding: 10px 20px;
-            margin: 10px;
+            padding: 6px 12px;
+            margin: 5px;
             border: none;
             border-radius: 4px;
             background-color: red;
             color: black;
             cursor: pointer;
         }
-        #playerList, #playerSummary {
+        #playerList, #playerSummary, #groups {
             margin-top: 20px;
-            max-width: 600px;
+            max-width: 800px;
             margin-left: auto;
             margin-right: auto;
             text-align: left;
@@ -47,17 +47,36 @@
             margin: 5px 0;
             padding: 10px;
             border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .removeBtn {
+            background-color: #ff4d4d;
+            color: white;
+            font-size: 12px;
+            padding: 3px 6px;
         }
         #playerSummary {
             margin-top: 15px;
             padding: 10px;
+        }
+        .groupBox {
+            background-color: #2e2e2e;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .groupTitle {
+            font-weight: bold;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
 
     <h1>ExilliuM</h1>
-    <h2>Guild vs Guild - Registro de jogadores</h2>
+    <h2>Eventos PVP - Registro de jogadores</h2>
 
     <input type="text" id="name" placeholder="Nome">
     <input type="text" id="class" placeholder="Classe (BK, MG, DL, SM, ELF)">
@@ -69,6 +88,10 @@
 
     <div id="playerList"></div>
     <div id="playerSummary"></div>
+
+    <h2>Grupos</h2>
+    <button onclick="createGroup()">Criar Grupo</button>
+    <div id="groups"></div>
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
