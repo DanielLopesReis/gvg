@@ -45,29 +45,11 @@ function loadPlayers() {
     db.ref("players").on("value", snapshot => {
         const listDiv = document.getElementById("playerList");
         listDiv.innerHTML = "";
-        
-        let bkCount = 0;
-        let mgCount = 0;
-        let dlCount = 0;
-        let smCount = 0;
-        let elfCount = 0;
-        let totalCount = 0;
-
         snapshot.forEach(child => {
             const player = child.val();
             const p = document.createElement("div");
             p.className = "playerItem";
             p.textContent = `${player.name} - ${player.playerClass} - ${player.nick}`;
-
-            // Contar os jogadores por classe
-            switch (player.playerClass) {
-                case 'BK': bkCount++; break;
-                case 'MG': mgCount++; break;
-                case 'DL': dlCount++; break;
-                case 'SM': smCount++; break;
-                case 'ELF': elfCount++; break;
-            }
-            totalCount++;
 
             // remover apenas para admin
             const removeBtn = document.createElement("button");
@@ -79,12 +61,6 @@ function loadPlayers() {
 
             listDiv.appendChild(p);
         });
-
-        // Atualizar o contador
-        const countDiv = document.getElementById("playerCount");
-        countDiv.textContent = `BK: ${bkCount} | MG: ${mgCount} | DL: ${dlCount} | SM: ${smCount} | ELF: ${elfCount} | Total: ${totalCount}`;
-        countDiv.style.textAlign = 'center';
-
         loadGroups(); // atualizar selects
     });
 }
